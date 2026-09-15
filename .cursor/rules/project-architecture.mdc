@@ -1,0 +1,34 @@
+---
+description: Project architecture, Unity performance, and tech stack for Run-Rich-3D
+alwaysApply: true
+---
+
+# Project Rules & Architecture Standards
+
+## Directory Structure
+
+- Scripts: `Aim/Scripts/`
+- Sprites: `Aim/Sprites/`
+- Prefabs: `Aim/Prefabs/`
+
+## Architecture
+
+- Follow SOLID for all C# classes.
+- Follow DRY. Check existing code in `Aim/Scripts/` for reusable utilities or base classes before writing new logic.
+- Use MCP (Model-Controller-Presenter):
+  - **Model**: pure C# classes/structs with state and core logic (no `MonoBehaviour`).
+  - **Presenter**: coordinator/mediator using UniRx and UniTask to link Model and View.
+  - **View**: `MonoBehaviour` classes for UI rendering and input only.
+
+## Unity Performance
+
+- Never use `Object.FindObjectOfType`, `GameObject.Find`, `GameObject.FindWithTag`, or any global scene searches. This hurts WebGL performance.
+- Never call `GetComponent` inside `Update()`, `FixedUpdate()`, or performance-critical loops.
+- Inject component references via Inspector (`[SerializeField]`) or setup methods.
+- If `GetComponent` is required, call it once during `Awake()` or initialization and cache the result.
+
+## Tech Stack
+
+- Use UniRx for state bindings, event streams, and reactive logic.
+- Use UniTask instead of standard C# `Task` or Unity coroutines.
+- Use object pooling for targets, projectiles, and frequently spawned objects. Avoid `Instantiate` and `Destroy` during runtime loops.
