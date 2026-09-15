@@ -13,7 +13,7 @@ namespace RunRich3D.Editor
         private const string GroundMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/ground.asset";
         private const string BoxMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Box.asset";
         private const string FlagMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Flag.asset";
-        private const string ChoiceDoorMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/ChoiceDoor.asset";
+        private const string ChoiceDoorMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Door_Descent_02.asset";
         private const string PartyMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Party.asset";
         private const string StudyMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Study.asset";
         private const string FinishBluePath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/EndLevel_Blue.asset";

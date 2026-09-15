@@ -34,11 +34,12 @@ namespace RunRich3D.Editor
         private const string ShopSkinTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/shop_skin.png";
         private const string PickupsTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/pickups.png";
         private const string ParquetTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/parquet_violet.png";
+        private const string PlusTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Plus.png";
         private const string DollarPrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bills.fbx";
         private const string BottlePrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bottle.fbx";
         private const string BoxMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Box.asset";
         private const string FlagMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Flag.asset";
-        private const string ChoiceDoorMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/ChoiceDoor.asset";
+        private const string ChoiceDoorMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Door_Descent_02.asset";
         private const string PartyMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Party.asset";
         private const string StudyMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Study.asset";
         private const string FinishBluePath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/EndLevel_Blue.asset";
@@ -58,6 +59,7 @@ namespace RunRich3D.Editor
         private const string FinishMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/Plane_Finish.mat";
         private const string GoodDoorMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/GoodDoor.mat";
         private const string BadDoorMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/BadDoor.mat";
+        private const string RedMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/Red.mat";
 
         [MenuItem("Run Rich 3D/Rebuild Scene Hierarchy")]
         public static void SetupScene()
@@ -86,6 +88,7 @@ namespace RunRich3D.Editor
             var shopSkinTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ShopSkinTexPath);
             var pickupsTex = AssetDatabase.LoadAssetAtPath<Texture2D>(PickupsTexPath);
             var parquetTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ParquetTexPath);
+            var plusTex = AssetDatabase.LoadAssetAtPath<Texture2D>(PlusTexPath);
             var dollarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DollarPrefabPath);
             var bottlePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BottlePrefabPath);
             var boxMesh = AssetDatabase.LoadAssetAtPath<Mesh>(BoxMeshPath);
@@ -110,6 +113,7 @@ namespace RunRich3D.Editor
             var finishMat = AssetDatabase.LoadAssetAtPath<Material>(FinishMatPath);
             var goodDoorMat = AssetDatabase.LoadAssetAtPath<Material>(GoodDoorMatPath);
             var badDoorMat = AssetDatabase.LoadAssetAtPath<Material>(BadDoorMatPath);
+            var redMat = AssetDatabase.LoadAssetAtPath<Material>(RedMatPath);
 
             RenderSettings.skybox = skybox;
             RenderSettings.ambientMode = AmbientMode.Trilight;
@@ -222,7 +226,8 @@ namespace RunRich3D.Editor
             levelSo.FindProperty("_dollarPrefab").objectReferenceValue = dollarPrefab;
             levelSo.FindProperty("_bottlePrefab").objectReferenceValue = bottlePrefab;
             levelSo.FindProperty("_moneyMaterial").objectReferenceValue = paperBloc != null ? paperBloc : propsFlat;
-            levelSo.FindProperty("_bottleMaterial").objectReferenceValue = badDoorMat != null ? badDoorMat : propsFlatBad;
+            levelSo.FindProperty("_bottleMaterial").objectReferenceValue = redMat != null ? redMat : (badDoorMat != null ? badDoorMat : propsFlatBad);
+            levelSo.FindProperty("_plusSignTexture").objectReferenceValue = plusTex;
             levelSo.ApplyModifiedPropertiesWithoutUndo();
 
             DestroyComponent<GameBootstrap>(bootstrapRoot);

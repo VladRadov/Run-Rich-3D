@@ -6,7 +6,7 @@ namespace RunRich3D.Models
             int comfortableThreshold,
             int richThreshold,
             int maxDisplay,
-            int poorOutfitWealth,
+            int casualOutfitWealth,
             int middleOutfitWealth,
             int richOutfitWealth,
             int millionaireOutfitWealth)
@@ -14,16 +14,16 @@ namespace RunRich3D.Models
             ComfortableThreshold = comfortableThreshold;
             RichThreshold = richThreshold;
             MaxDisplay = maxDisplay < 1 ? 1 : maxDisplay;
-            PoorOutfitWealth = poorOutfitWealth;
-            MiddleOutfitWealth = middleOutfitWealth;
-            RichOutfitWealth = richOutfitWealth;
-            MillionaireOutfitWealth = millionaireOutfitWealth;
+            CasualOutfitWealth = ClampMin(casualOutfitWealth, 0);
+            MiddleOutfitWealth = ClampMin(middleOutfitWealth, CasualOutfitWealth);
+            RichOutfitWealth = ClampMin(richOutfitWealth, MiddleOutfitWealth);
+            MillionaireOutfitWealth = ClampMin(millionaireOutfitWealth, RichOutfitWealth);
         }
 
         internal int ComfortableThreshold { get; }
         internal int RichThreshold { get; }
         internal int MaxDisplay { get; }
-        internal int PoorOutfitWealth { get; }
+        internal int CasualOutfitWealth { get; }
         internal int MiddleOutfitWealth { get; }
         internal int RichOutfitWealth { get; }
         internal int MillionaireOutfitWealth { get; }
@@ -60,12 +60,12 @@ namespace RunRich3D.Models
                 return CowboyOutfits.Middle;
             }
 
-            if (wealth >= PoorOutfitWealth)
+            if (wealth >= CasualOutfitWealth)
             {
-                return CowboyOutfits.Poor;
+                return CowboyOutfits.Casual;
             }
 
-            return CowboyOutfits.Casual;
+            return CowboyOutfits.Poor;
         }
 
         internal float Normalized(int wealth)
@@ -81,6 +81,11 @@ namespace RunRich3D.Models
             }
 
             return wealth / (float)MaxDisplay;
+        }
+
+        private static int ClampMin(int value, int min)
+        {
+            return value < min ? min : value;
         }
     }
 }

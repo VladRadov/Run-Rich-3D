@@ -33,9 +33,11 @@ namespace RunRich3D.Services
         public float PickupHalfWidth = 0.7f;
         public float PickupHalfDepth = 0.65f;
         public Color MoneyTint = new Color(0.93f, 0.74f, 0.12f);
-        public Color BottleTint = new Color(0.18f, 0.52f, 0.22f);
+        public Color BottleTint = new Color(1f, 0f, 0f);
         public float PickupGlossiness = 0.42f;
         public float PickupMetallic = 0.15f;
+        public float PickupSignScale = 0.7f;
+        public Vector3 PickupSignOffset = new Vector3(0.4f, 0.28f, 0.12f);
 
         [Header("Flags")]
         public float FlagScale = 0.28f;
@@ -50,15 +52,18 @@ namespace RunRich3D.Services
 
         [Header("Gates")]
         public float GateHalfX = 1.45f;
-        public float GateDoorY = 1.55f;
-        public float GateDoorScale = 5.2f;
+        public float GateDoorY = 0f;
+        public float GateDoorScale = 1.45f;
         public float GateIconY = 0.85f;
         public float PartyIconScale = 4.2f;
         public float SchoolIconScale = 6.5f;
         public float GateLabelY = 2.45f;
         public float GateDepth = 0.8f;
-        public Color PartyLabelColor = new Color(0.35f, 0.9f, 0.4f);
-        public Color SchoolLabelColor = new Color(1f, 0.45f, 0.3f);
+        public Color PartyLabelColor = new Color(1f, 0.45f, 0.3f);
+        public Color SchoolLabelColor = new Color(0.35f, 0.9f, 0.4f);
+        public Vector3 PartyLabelBgSize = new Vector3(2.9f, 0.78f, 0.1f);
+        public Vector3 SchoolLabelBgSize = new Vector3(2.2f, 0.78f, 0.1f);
+        public Vector3 GateLabelOutlinePad = new Vector3(0.22f, 0.12f, 0.02f);
 
         [Header("Finish")]
         public float FinishPlaneY = 0.03f;

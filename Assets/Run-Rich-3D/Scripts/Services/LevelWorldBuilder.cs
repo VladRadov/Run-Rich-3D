@@ -109,13 +109,21 @@ namespace RunRich3D.Services
         private readonly LevelWorldTuning _tuning;
         private readonly PathBend _path;
         private readonly PickupPools _pickupPools;
+        private readonly Texture2D _plusSignTexture;
         private Material _goldMaterial;
         private Material _bottleTintMaterial;
+        private Material _gateLabelFill;
+        private Material _gateLabelOutline;
+        private Material _plusSignMaterial;
+        private Material _minusSignMaterial;
+        private Mesh _signQuad;
+        private Texture2D _generatedMinusTexture;
 
+        private const string SignChildName = "Sign";
         private static readonly Quaternion FaceRunner = Quaternion.identity;
 
         internal LevelWorldBuilder(Transform root, Catalog catalog, LevelWorldTuning tuning, PathBend path)
-            : this(root, catalog, tuning, path, null)
+            : this(root, catalog, tuning, path, null, null)
         {
         }
 
@@ -125,12 +133,24 @@ namespace RunRich3D.Services
             LevelWorldTuning tuning,
             PathBend path,
             PickupPools pickupPools)
+            : this(root, catalog, tuning, path, pickupPools, null)
+        {
+        }
+
+        internal LevelWorldBuilder(
+            Transform root,
+            Catalog catalog,
+            LevelWorldTuning tuning,
+            PathBend path,
+            PickupPools pickupPools,
+            Texture2D plusSignTexture)
         {
             _root = root;
             _catalog = catalog;
             _tuning = tuning;
             _path = path ?? new PathBend(PathSegment.DefaultCourse(), 0f);
             _pickupPools = pickupPools;
+            _plusSignTexture = plusSignTexture;
         }
 
         internal BuiltLevel BuildRuntimePickups(LevelLayout layout)
@@ -285,7 +305,7 @@ namespace RunRich3D.Services
                 GameObject prefab = spawn.IsPositive ? _catalog.DollarPrefab : _catalog.BottlePrefab;
                 Material material = spawn.IsPositive
                     ? null
-                    : ResolvePickupMaterial(false);
+                    : ResolveBottleMaterial();
                 Vector3 scale = spawn.IsPositive
                     ? Vector3.one * _tuning.MoneyScale
                     : Vector3.one * _tuning.BottleScale;
@@ -300,6 +320,7 @@ namespace RunRich3D.Services
                     scale,
                     Quaternion.Euler(0f, pose.YawDegrees, 0f),
                     spawn.IsPositive);
+                AttachPickupSign(views[i], spawn.IsPositive, pose);
             }
 
             return views;
@@ -386,7 +407,7 @@ namespace RunRich3D.Services
                 "ChoiceLeft",
                 group,
                 _catalog.ChoiceDoorMesh,
-                _catalog.ChoiceMaterial,
+                _catalog.PoorDoorMaterial,
                 -_tuning.GateHalfX,
                 gate.Z,
                 _tuning.GateDoorY,
@@ -396,7 +417,7 @@ namespace RunRich3D.Services
                 "ChoiceRight",
                 group,
                 _catalog.ChoiceDoorMesh,
-                _catalog.ChoiceMaterial,
+                _catalog.GoodDoorMaterial,
                 _tuning.GateHalfX,
                 gate.Z,
                 _tuning.GateDoorY,
@@ -406,7 +427,7 @@ namespace RunRich3D.Services
                 "PartyIcon",
                 group,
                 _catalog.PartyMesh,
-                _catalog.GoodDoorMaterial,
+                _catalog.PoorDoorMaterial,
                 -_tuning.GateHalfX,
                 gate.Z,
                 _tuning.GateIconY,
@@ -416,13 +437,15 @@ namespace RunRich3D.Services
                 "SchoolIcon",
                 group,
                 _catalog.StudyMesh,
-                _catalog.PoorDoorMaterial,
+                _catalog.GoodDoorMaterial,
                 _tuning.GateHalfX,
                 gate.Z,
                 _tuning.GateIconY,
                 Vector3.one * _tuning.SchoolIconScale,
                 FaceRunner);
 
+            CreateGateLabelBackdrop("PartyLabelBg", group, -_tuning.GateHalfX, gate.Z, _tuning.PartyLabelBgSize);
+            CreateGateLabelBackdrop("SchoolLabelBg", group, _tuning.GateHalfX, gate.Z, _tuning.SchoolLabelBgSize);
             CreateLabel("PartyLabel", group, gate.LeftLabel, -_tuning.GateHalfX, gate.Z, _tuning.GateLabelY, _tuning.PartyLabelColor);
             CreateLabel("SchoolLabel", group, gate.RightLabel, _tuning.GateHalfX, gate.Z, _tuning.GateLabelY, _tuning.SchoolLabelColor);
         }
@@ -711,18 +734,88 @@ namespace RunRich3D.Services
             go.transform.localRotation = Quaternion.Euler(0f, pose.YawDegrees, 0f);
         }
 
+        private void CreateGateLabelBackdrop(
+            string name,
+            Transform parent,
+            float lateral,
+            float distance,
+            Vector3 size)
+        {
+            Vector3 pad = _tuning.GateLabelOutlinePad;
+            if (pad.sqrMagnitude < 0.0001f)
+            {
+                pad = new Vector3(0.22f, 0.12f, 0.02f);
+            }
+
+            PlaceFittedOnPath(
+                name + "Outline",
+                parent,
+                _catalog.FinishBlueMesh,
+                EnsureGateLabelOutline(),
+                lateral,
+                distance + 0.04f,
+                _tuning.GateLabelY,
+                size + pad);
+            PlaceFittedOnPath(
+                name + "Fill",
+                parent,
+                _catalog.FinishBlueMesh,
+                EnsureGateLabelFill(),
+                lateral,
+                distance + 0.02f,
+                _tuning.GateLabelY,
+                size);
+        }
+
+        private Material EnsureGateLabelFill()
+        {
+            if (_gateLabelFill == null)
+            {
+                _gateLabelFill = CreateStandard(new Color(0.18f, 0.18f, 0.2f));
+                _gateLabelFill.SetFloat("_Glossiness", 0.08f);
+                _gateLabelFill.SetFloat("_Metallic", 0f);
+            }
+
+            return _gateLabelFill;
+        }
+
+        private Material EnsureGateLabelOutline()
+        {
+            if (_gateLabelOutline == null)
+            {
+                _gateLabelOutline = CreateStandard(Color.black);
+                _gateLabelOutline.SetFloat("_Glossiness", 0.05f);
+                _gateLabelOutline.SetFloat("_Metallic", 0f);
+            }
+
+            return _gateLabelOutline;
+        }
+
         private void SnapToPath(GameObject instance)
         {
             Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
-            if (renderers.Length == 0)
+            Renderer first = null;
+            Bounds bounds = new Bounds();
+            for (int i = 0; i < renderers.Length; i++)
             {
-                return;
+                if (IsPickupSign(renderers[i]))
+                {
+                    continue;
+                }
+
+                if (first == null)
+                {
+                    first = renderers[i];
+                    bounds = renderers[i].bounds;
+                    continue;
+                }
+
+                bounds.Encapsulate(renderers[i].bounds);
             }
 
-            Bounds bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++)
+            if (first == null)
             {
-                bounds.Encapsulate(renderers[i].bounds);
+                return;
             }
 
             float delta = _tuning.PathSurfaceY - bounds.min.y;
@@ -739,6 +832,16 @@ namespace RunRich3D.Services
                 }
 
                 return _goldMaterial;
+            }
+
+            return ResolveBottleMaterial();
+        }
+
+        private Material ResolveBottleMaterial()
+        {
+            if (_catalog.BottleMaterial != null)
+            {
+                return _catalog.BottleMaterial;
             }
 
             if (_bottleTintMaterial == null)
@@ -779,6 +882,241 @@ namespace RunRich3D.Services
             return view;
         }
 
+        private void AttachPickupSign(LevelPieceView piece, bool isPositive, PathPose pose)
+        {
+            if (piece == null)
+            {
+                return;
+            }
+
+            Transform parent = piece.transform;
+            Transform existing = parent.Find(SignChildName);
+            GameObject go;
+            if (existing != null)
+            {
+                go = existing.gameObject;
+            }
+            else
+            {
+                go = new GameObject(SignChildName);
+                go.transform.SetParent(parent, false);
+                var filter = go.AddComponent<MeshFilter>();
+                filter.sharedMesh = EnsureSignQuad();
+                var renderer = go.AddComponent<MeshRenderer>();
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+                renderer.lightProbeUsage = UnityEngine.Rendering.LightProbeUsage.Off;
+                renderer.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
+            }
+
+            MeshRenderer signRenderer = go.GetComponent<MeshRenderer>();
+            if (signRenderer != null)
+            {
+                signRenderer.sharedMaterial = isPositive ? EnsurePlusSignMaterial() : EnsureMinusSignMaterial();
+                signRenderer.enabled = true;
+            }
+
+            Bounds bounds = PickupBounds(parent);
+            Quaternion yaw = Quaternion.Euler(0f, pose.YawDegrees, 0f);
+            Vector3 right = yaw * Vector3.right;
+            Vector3 towardCamera = yaw * Vector3.back;
+            float size = _tuning.PickupSignScale > 0.01f ? _tuning.PickupSignScale : 0.7f;
+            Vector3 extra = _tuning.PickupSignOffset;
+            if (extra.sqrMagnitude < 0.0001f)
+            {
+                extra = new Vector3(0.35f, 0.28f, 0f);
+            }
+
+            Vector3 worldPos = bounds.center
+                + Vector3.up * (bounds.extents.y + extra.y)
+                + right * extra.x
+                + towardCamera * extra.z;
+            Vector3 worldOffset = worldPos - parent.position;
+            Quaternion facing = Quaternion.LookRotation(towardCamera, Vector3.up);
+            var view = EntityViewFactory.CreateOn<PickupSignView>(go);
+            view.Bind(parent, worldOffset, facing, size);
+        }
+
+        private static Bounds PickupBounds(Transform parent)
+        {
+            Renderer[] renderers = parent.GetComponentsInChildren<Renderer>(true);
+            Renderer first = null;
+            Bounds bounds = new Bounds();
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (IsPickupSign(renderers[i]) || !renderers[i].enabled)
+                {
+                    continue;
+                }
+
+                if (first == null)
+                {
+                    first = renderers[i];
+                    bounds = renderers[i].bounds;
+                    continue;
+                }
+
+                bounds.Encapsulate(renderers[i].bounds);
+            }
+
+            if (first != null)
+            {
+                return bounds;
+            }
+
+            return new Bounds(parent.position + Vector3.up * 0.6f, Vector3.one);
+        }
+
+        private Mesh EnsureSignQuad()
+        {
+            if (_signQuad != null)
+            {
+                return _signQuad;
+            }
+
+            _signQuad = new Mesh { name = "PickupSignQuad" };
+            _signQuad.vertices = new[]
+            {
+                new Vector3(-0.5f, -0.5f, 0f),
+                new Vector3(0.5f, -0.5f, 0f),
+                new Vector3(-0.5f, 0.5f, 0f),
+                new Vector3(0.5f, 0.5f, 0f)
+            };
+            _signQuad.uv = new[]
+            {
+                new Vector2(0f, 0f),
+                new Vector2(1f, 0f),
+                new Vector2(0f, 1f),
+                new Vector2(1f, 1f)
+            };
+            _signQuad.triangles = new[]
+            {
+                0, 2, 1, 2, 3, 1,
+                0, 1, 2, 2, 1, 3
+            };
+            _signQuad.RecalculateNormals();
+            _signQuad.RecalculateBounds();
+            return _signQuad;
+        }
+
+        private Material EnsurePlusSignMaterial()
+        {
+            if (_plusSignMaterial != null)
+            {
+                return _plusSignMaterial;
+            }
+
+            Texture2D texture = _plusSignTexture != null ? _plusSignTexture : CreateSignTexture(true);
+            _plusSignMaterial = CreateUnlitTexture(texture);
+            return _plusSignMaterial;
+        }
+
+        private Material EnsureMinusSignMaterial()
+        {
+            if (_minusSignMaterial != null)
+            {
+                return _minusSignMaterial;
+            }
+
+            _generatedMinusTexture = CreateSignTexture(false);
+            _minusSignMaterial = CreateUnlitTexture(_generatedMinusTexture);
+            return _minusSignMaterial;
+        }
+
+        private static Material CreateUnlitTexture(Texture2D texture)
+        {
+            Shader shader = Shader.Find("RunRich3D/PickupSign");
+            if (shader == null)
+            {
+                shader = Shader.Find("Unlit/Texture");
+            }
+
+            if (shader == null)
+            {
+                shader = Shader.Find("Standard");
+            }
+
+            var material = new Material(shader);
+            material.mainTexture = texture;
+            material.color = Color.white;
+            if (material.HasProperty("_Color"))
+            {
+                material.SetColor("_Color", Color.white);
+            }
+
+            if (material.HasProperty("_Cutoff"))
+            {
+                material.SetFloat("_Cutoff", 0.12f);
+            }
+
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.EnableKeyword("_EMISSION");
+                material.SetColor("_EmissionColor", Color.white);
+            }
+
+            return material;
+        }
+
+        private static Texture2D CreateSignTexture(bool plus)
+        {
+            const int size = 256;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.name = plus ? "PickupPlus" : "PickupMinus";
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+            Color accent = plus ? new Color(0.2f, 1f, 0.28f) : new Color(1f, 0.12f, 0.12f);
+            Color core = plus ? new Color(0.92f, 1f, 0.92f) : new Color(1f, 0.92f, 0.92f);
+            var pixels = new Color[size * size];
+            float inv = 2f / (size - 1);
+            for (int y = 0; y < size; y++)
+            {
+                float py = y * inv - 1f;
+                for (int x = 0; x < size; x++)
+                {
+                    float px = x * inv - 1f;
+                    float symbol = plus ? PlusSdf(px, py) : MinusSdf(px, py);
+                    float inner = Mathf.Clamp01(-symbol / 0.16f);
+                    float glow = Mathf.Clamp01(1f - (symbol + 0.1f) / 0.16f);
+                    Color color = Color.Lerp(accent, core, inner);
+                    color.a = Mathf.Max(inner, glow * 0.85f);
+                    if (color.a < 0.02f)
+                    {
+                        color = Color.clear;
+                    }
+
+                    pixels[y * size + x] = color;
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.Apply(false, true);
+            return texture;
+        }
+
+        private static float PlusSdf(float x, float y)
+        {
+            float bar = CapsuleSdf(x, y, 0.62f, 0.2f);
+            float upright = CapsuleSdf(y, x, 0.62f, 0.2f);
+            return Mathf.Min(bar, upright);
+        }
+
+        private static float MinusSdf(float x, float y)
+        {
+            return CapsuleSdf(x, y, 0.62f, 0.2f);
+        }
+
+        private static float CapsuleSdf(float x, float y, float halfLength, float radius)
+        {
+            float ax = Mathf.Abs(x) - halfLength;
+            if (ax < 0f)
+            {
+                ax = 0f;
+            }
+
+            return Mathf.Sqrt(ax * ax + y * y) - radius;
+        }
+
         private static void Paint(GameObject root, Material material)
         {
             if (material == null)
@@ -789,8 +1127,18 @@ namespace RunRich3D.Services
             MeshRenderer[] renderers = root.GetComponentsInChildren<MeshRenderer>(true);
             for (int i = 0; i < renderers.Length; i++)
             {
+                if (IsPickupSign(renderers[i]))
+                {
+                    continue;
+                }
+
                 renderers[i].sharedMaterial = material;
             }
+        }
+
+        private static bool IsPickupSign(Component component)
+        {
+            return component != null && component.gameObject.name == SignChildName;
         }
     }
 }

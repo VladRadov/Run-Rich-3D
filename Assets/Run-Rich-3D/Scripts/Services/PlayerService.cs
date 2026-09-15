@@ -39,11 +39,11 @@ namespace RunRich3D.Services
         [SerializeField] private int _richWealth = 80;
         [SerializeField] private int _maxDisplayWealth = 120;
 
-        [Header("Outfit Thresholds")]
-        [SerializeField] private int _poorOutfitWealth = 20;
-        [SerializeField] private int _middleOutfitWealth = 40;
+        [Header("Outfit Thresholds (min coins)")]
+        [SerializeField] private int _casualOutfitWealth = 40;
+        [SerializeField] private int _middleOutfitWealth = 60;
         [SerializeField] private int _richOutfitWealth = 80;
-        [SerializeField] private int _millionaireOutfitWealth = 120;
+        [SerializeField] private int _millionaireOutfitWealth = 100;
 
         [Header("Status Banner")]
         [SerializeField] private Vector3 _bannerLocalPosition = new Vector3(0f, 2.35f, 0f);
@@ -109,7 +109,7 @@ namespace RunRich3D.Services
                 _comfortableWealth,
                 _richWealth,
                 _maxDisplayWealth,
-                _poorOutfitWealth,
+                _casualOutfitWealth,
                 _middleOutfitWealth,
                 _richOutfitWealth,
                 _millionaireOutfitWealth);

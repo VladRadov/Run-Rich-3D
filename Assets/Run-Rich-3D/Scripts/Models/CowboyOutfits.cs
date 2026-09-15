@@ -9,10 +9,10 @@ namespace RunRich3D.Models
         internal const int Millionaire = 4;
         internal const int Count = 5;
 
-        internal const int PoorThreshold = 20;
-        internal const int MiddleThreshold = 40;
+        internal const int CasualThreshold = 40;
+        internal const int MiddleThreshold = 60;
         internal const int RichThreshold = 80;
-        internal const int MillionaireThreshold = 120;
+        internal const int MillionaireThreshold = 100;
 
         internal static int UpgradeFrom(int current)
         {
@@ -56,12 +56,12 @@ namespace RunRich3D.Models
                 return Middle;
             }
 
-            if (wealth >= PoorThreshold)
+            if (wealth >= CasualThreshold)
             {
-                return Poor;
+                return Casual;
             }
 
-            return Casual;
+            return Poor;
         }
     }
 }

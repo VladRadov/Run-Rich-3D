@@ -67,10 +67,6 @@ namespace RunRich3D.Controllers
                 })
                 .AddTo(_disposables);
 
-            _model.GateReskin
-                .Subscribe(index => _view.SetOutfit(index, true))
-                .AddTo(_disposables);
-
             _input.Pressed
                 .Subscribe(OnPressed)
                 .AddTo(_disposables);

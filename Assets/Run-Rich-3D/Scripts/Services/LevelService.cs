@@ -21,6 +21,7 @@ namespace RunRich3D.Services
         [Header("Pickup Materials")]
         [SerializeField] private Material _moneyMaterial;
         [SerializeField] private Material _bottleMaterial;
+        [SerializeField] private Texture2D _plusSignTexture;
 
         [Header("World Tuning")]
         [SerializeField] private LevelWorldTuning _world = new LevelWorldTuning();
@@ -57,8 +58,8 @@ namespace RunRich3D.Services
 
         [Header("Gate Layout")]
         [SerializeField] private float _gateZ = 54f;
-        [SerializeField] private int _gateLeftWealth = 20;
-        [SerializeField] private int _gateRightWealth = -15;
+        [SerializeField] private int _gateLeftWealth = -15;
+        [SerializeField] private int _gateRightWealth = 20;
         [SerializeField] private string _gateLeftLabel = "Вечеринка";
         [SerializeField] private string _gateRightLabel = "Школа";
 
@@ -96,7 +97,7 @@ namespace RunRich3D.Services
             float spin = world.MoneySpinDegreesPerSecond > 0.01f ? world.MoneySpinDegreesPerSecond : 72f;
             _pickupPools?.Dispose();
             _pickupPools = new PickupPools(pickupRoot, _dollarPrefab, _bottlePrefab, spin);
-            var builder = new LevelWorldBuilder(pickupRoot, CreateCatalog(), world, path, _pickupPools);
+            var builder = new LevelWorldBuilder(pickupRoot, CreateCatalog(), world, path, _pickupPools, _plusSignTexture);
             LevelWorldBuilder.BuiltLevel visuals = builder.BuildRuntimePickups(layout);
             FlagView[] flags = _flagViews != null ? _flagViews : new FlagView[0];
 

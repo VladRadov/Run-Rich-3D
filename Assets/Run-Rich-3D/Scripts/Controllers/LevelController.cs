@@ -123,7 +123,6 @@ namespace RunRich3D.Controllers
             gate.Consume();
             int wealthDelta = gate.WealthDeltaFor(x);
             _player.AddWealth(wealthDelta);
-            _player.ApplyGateReskin(wealthDelta);
         }
 
         private void TryFinish(float x, float z)
