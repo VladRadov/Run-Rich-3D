@@ -83,21 +83,22 @@ namespace RunRich3D.Models
 
     internal sealed class LevelLayout
     {
-        internal const int PathTileCount = 7;
-        internal const float PathTileLength = 7.5f;
-
-        private LevelLayout(
+        internal LevelLayout(
             PickupSpawn[] pickups,
             ObstacleSpawn[] obstacles,
             FlagSpawn[] flags,
             GateSpawn gate,
-            FinishSpawn finish)
+            FinishSpawn finish,
+            int pathTileCount,
+            float pathTileLength)
         {
             Pickups = pickups;
             Obstacles = obstacles;
             Flags = flags;
             Gate = gate;
             Finish = finish;
+            PathTileCount = pathTileCount < 1 ? 1 : pathTileCount;
+            PathTileLength = pathTileLength;
         }
 
         internal PickupSpawn[] Pickups { get; }
@@ -105,36 +106,7 @@ namespace RunRich3D.Models
         internal FlagSpawn[] Flags { get; }
         internal GateSpawn Gate { get; }
         internal FinishSpawn Finish { get; }
-
-        internal static LevelLayout CreateFirst()
-        {
-            return new LevelLayout(
-                new[]
-                {
-                    new PickupSpawn(0f, 6.5f, 10),
-                    new PickupSpawn(-1.5f, 8.2f, 10),
-                    new PickupSpawn(1.5f, 8.2f, 10),
-                    new PickupSpawn(1.55f, 11.2f, -20),
-                    new PickupSpawn(-1.55f, 16.4f, 10),
-                    new PickupSpawn(0f, 18.1f, 10),
-                    new PickupSpawn(1.5f, 22.4f, 10),
-                    new PickupSpawn(-1.5f, 26.2f, -20),
-                    new PickupSpawn(0f, 28.4f, 10),
-                    new PickupSpawn(1.5f, 36.2f, 10),
-                    new PickupSpawn(-1.5f, 38.1f, 10),
-                    new PickupSpawn(0f, 40.2f, 10)
-                },
-                new[]
-                {
-                    new ObstacleSpawn(1.45f, 13.4f, 0.55f, 0.55f, -10)
-                },
-                new[]
-                {
-                    new FlagSpawn(-2.55f, 21.2f),
-                    new FlagSpawn(2.55f, 21.2f)
-                },
-                new GateSpawn(31.5f, 20, -15, "Вечеринка", "Школа"),
-                new FinishSpawn(46f, 0.85f, 2, 3, 5));
-        }
+        internal int PathTileCount { get; }
+        internal float PathTileLength { get; }
     }
 }

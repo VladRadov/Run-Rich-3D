@@ -5,18 +5,24 @@ namespace RunRich3D.Views
 {
     public sealed class SceneLightingView : MonoBehaviour
     {
+        [Header("Light")]
         [SerializeField] private Light _sun;
         [SerializeField] private Material _skybox;
+
+        [Header("Ambient")]
         [SerializeField] private Color _ambientSky = new Color(0.62f, 0.86f, 1f);
         [SerializeField] private Color _ambientEquator = new Color(0.48f, 0.78f, 0.95f);
         [SerializeField] private Color _ambientGround = new Color(0.78f, 0.78f, 0.72f);
 
         private Light _cachedSun;
 
-        internal void Setup(Light sun, Material skybox)
+        internal void Setup(Light sun, Material skybox, Color ambientSky, Color ambientEquator, Color ambientGround)
         {
             _sun = sun;
             _skybox = skybox;
+            _ambientSky = ambientSky;
+            _ambientEquator = ambientEquator;
+            _ambientGround = ambientGround;
             _cachedSun = sun;
             Apply();
         }

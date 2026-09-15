@@ -13,17 +13,28 @@ namespace RunRich3D.Editor
     {
         private const string ScenePath = "Assets/Run-Rich-3D/Scenes/Game.unity";
         private const string SkyboxPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/skybox.mat";
-        private const string WaterMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/Water.mat";
         private const string EnviroMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/enviro_mat.mat";
         private const string PlayerMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/player_mat.mat";
-        private const string WaterMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Water.asset";
+        private const string PlayerAtlasPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/atlas_0.png";
+        private const string CowboyCasualPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/cowboy_Casual.asset";
+        private const string CowboyPoorPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Cowboy_Poor.asset";
+        private const string CowboyMiddlePath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Cowboy_Middle.asset";
+        private const string CowboyRichPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Cowboy_Rich.asset";
+        private const string CowboyMillionairePath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Cowboy_Millionaire.asset";
         private const string GroundMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/ground.asset";
-        private const string PlayerFbxPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/player.fbx";
         private const string FontPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Fonts/Inter-SemiBold.ttf";
         private const string ButtonTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/button.png";
         private const string RetryTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/TryAgain.png";
         private const string DollarTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Dollar_Green.png";
-        private const string DollarPrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/dollar.fbx";
+        private const string BillsTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/dollar_Logo.png";
+        private const string ArrowTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/arrow_left_right.png";
+        private const string FingerTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/hand.png";
+        private const string SettingsTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/settings.png";
+        private const string NoAdsTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/no_ads.png";
+        private const string ShopSkinTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/shop_skin.png";
+        private const string PickupsTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/pickups.png";
+        private const string ParquetTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/parquet_violet.png";
+        private const string DollarPrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bills.fbx";
         private const string BottlePrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bottle.fbx";
         private const string BoxMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Box.asset";
         private const string FlagMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Flag.asset";
@@ -37,6 +48,8 @@ namespace RunRich3D.Editor
         private const string DoorPoorPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Door_Poor_000.asset";
         private const string DoorRichPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Door_Rich_00.asset";
         private const string DoorMillionPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Door_Million_00.asset";
+        private const string FinishPlaneMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Plane.asset";
+        private const string FinishStarMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/StarFinishtLine.002.asset";
         private const string PropsFlatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/props_flat.mat";
         private const string PropsFlatBadPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/props_flat_bad.mat";
         private const string PaperBlocPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/PaperBloc.mat";
@@ -52,16 +65,27 @@ namespace RunRich3D.Editor
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
 
             var skybox = AssetDatabase.LoadAssetAtPath<Material>(SkyboxPath);
-            var waterMat = AssetDatabase.LoadAssetAtPath<Material>(WaterMatPath);
             var enviroMat = AssetDatabase.LoadAssetAtPath<Material>(EnviroMatPath);
             var playerMat = AssetDatabase.LoadAssetAtPath<Material>(PlayerMatPath);
-            var waterMesh = AssetDatabase.LoadAssetAtPath<Mesh>(WaterMeshPath);
+            var playerAtlas = AssetDatabase.LoadAssetAtPath<Texture2D>(PlayerAtlasPath);
+            var cowboyCasual = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyCasualPath);
+            var cowboyPoor = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyPoorPath);
+            var cowboyMiddle = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyMiddlePath);
+            var cowboyRich = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyRichPath);
+            var cowboyMillionaire = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyMillionairePath);
             var groundMesh = AssetDatabase.LoadAssetAtPath<Mesh>(GroundMeshPath);
-            var playerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerFbxPath);
             var hudFont = AssetDatabase.LoadAssetAtPath<Font>(FontPath);
             var buttonTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ButtonTexPath);
             var retryTex = AssetDatabase.LoadAssetAtPath<Texture2D>(RetryTexPath);
             var dollarTex = AssetDatabase.LoadAssetAtPath<Texture2D>(DollarTexPath);
+            var billsTex = AssetDatabase.LoadAssetAtPath<Texture2D>(BillsTexPath);
+            var arrowTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ArrowTexPath);
+            var fingerTex = AssetDatabase.LoadAssetAtPath<Texture2D>(FingerTexPath);
+            var settingsTex = AssetDatabase.LoadAssetAtPath<Texture2D>(SettingsTexPath);
+            var noAdsTex = AssetDatabase.LoadAssetAtPath<Texture2D>(NoAdsTexPath);
+            var shopSkinTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ShopSkinTexPath);
+            var pickupsTex = AssetDatabase.LoadAssetAtPath<Texture2D>(PickupsTexPath);
+            var parquetTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ParquetTexPath);
             var dollarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DollarPrefabPath);
             var bottlePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BottlePrefabPath);
             var boxMesh = AssetDatabase.LoadAssetAtPath<Mesh>(BoxMeshPath);
@@ -76,6 +100,8 @@ namespace RunRich3D.Editor
             var doorPoor = AssetDatabase.LoadAssetAtPath<Mesh>(DoorPoorPath);
             var doorRich = AssetDatabase.LoadAssetAtPath<Mesh>(DoorRichPath);
             var doorMillion = AssetDatabase.LoadAssetAtPath<Mesh>(DoorMillionPath);
+            var finishPlaneMesh = AssetDatabase.LoadAssetAtPath<Mesh>(FinishPlaneMeshPath);
+            var finishStarMesh = AssetDatabase.LoadAssetAtPath<Mesh>(FinishStarMeshPath);
             var propsFlat = AssetDatabase.LoadAssetAtPath<Material>(PropsFlatPath);
             var propsFlatBad = AssetDatabase.LoadAssetAtPath<Material>(PropsFlatBadPath);
             var paperBloc = AssetDatabase.LoadAssetAtPath<Material>(PaperBlocPath);
@@ -98,13 +124,6 @@ namespace RunRich3D.Editor
 
             var camera = EnsureCamera(gameRoot.transform);
             var directional = EnsureLight(gameRoot.transform);
-
-            var water = GetOrCreateChild(gameRoot.transform, "Water");
-            ConfigureMesh(water, waterMesh, waterMat, new Vector3(0f, -0.45f, 40f), Vector3.one);
-            if (waterMesh == null)
-            {
-                ConfigureBuiltinMesh(water, PrimitiveType.Plane, waterMat, new Vector3(0f, -0.45f, 40f), new Vector3(28f, 1f, 28f));
-            }
 
             var path = GetOrCreateChild(gameRoot.transform, "Path");
             ConfigureMesh(path, groundMesh, enviroMat, new Vector3(0f, 0f, 28f), new Vector3(1f, 1f, 8f));
@@ -138,22 +157,10 @@ namespace RunRich3D.Editor
                 Object.DestroyImmediate(visual.GetChild(i).gameObject);
             }
 
-            if (playerPrefab != null)
-            {
-                StripPlaceholderVisual(visual.gameObject);
-                visual.localPosition = Vector3.zero;
-                visual.localRotation = Quaternion.identity;
-                visual.localScale = Vector3.one;
-                var instance = (GameObject)PrefabUtility.InstantiatePrefab(playerPrefab, visual);
-                instance.name = "player";
-                instance.transform.localPosition = Vector3.zero;
-                instance.transform.localRotation = Quaternion.identity;
-                instance.transform.localScale = Vector3.one;
-            }
-            else
-            {
-                ConfigureBuiltinMesh(visual.gameObject, PrimitiveType.Capsule, playerMat, new Vector3(0f, 1f, 0f), new Vector3(0.8f, 0.9f, 0.8f));
-            }
+            StripPlaceholderVisual(visual.gameObject);
+            visual.localPosition = Vector3.zero;
+            visual.localRotation = Quaternion.identity;
+            visual.localScale = Vector3.one;
 
             var lightingService = EnsureService<LightingService>(servicesRoot.transform, "LightingService");
             var inputService = EnsureService<InputService>(servicesRoot.transform, "InputService");
@@ -175,6 +182,14 @@ namespace RunRich3D.Editor
             playerSo.FindProperty("_playerEntity").objectReferenceValue = player;
             playerSo.FindProperty("_visualRoot").objectReferenceValue = visual;
             playerSo.FindProperty("_inputService").objectReferenceValue = inputService;
+            playerSo.FindProperty("_labelFont").objectReferenceValue = hudFont;
+            playerSo.FindProperty("_casualMesh").objectReferenceValue = cowboyCasual;
+            playerSo.FindProperty("_poorMesh").objectReferenceValue = cowboyPoor;
+            playerSo.FindProperty("_middleMesh").objectReferenceValue = cowboyMiddle;
+            playerSo.FindProperty("_richMesh").objectReferenceValue = cowboyRich;
+            playerSo.FindProperty("_millionaireMesh").objectReferenceValue = cowboyMillionaire;
+            playerSo.FindProperty("_playerMaterial").objectReferenceValue = playerMat;
+            playerSo.FindProperty("_playerAtlas").objectReferenceValue = playerAtlas;
             playerSo.ApplyModifiedPropertiesWithoutUndo();
 
             var cameraSo = new SerializedObject(cameraService);
@@ -190,6 +205,14 @@ namespace RunRich3D.Editor
             loopSo.FindProperty("_buttonTexture").objectReferenceValue = buttonTex;
             loopSo.FindProperty("_retryTexture").objectReferenceValue = retryTex;
             loopSo.FindProperty("_dollarTexture").objectReferenceValue = dollarTex;
+            loopSo.FindProperty("_billsTexture").objectReferenceValue = billsTex;
+            loopSo.FindProperty("_arrowTexture").objectReferenceValue = arrowTex;
+            loopSo.FindProperty("_fingerTexture").objectReferenceValue = fingerTex;
+            loopSo.FindProperty("_settingsTexture").objectReferenceValue = settingsTex;
+            loopSo.FindProperty("_noAdsTexture").objectReferenceValue = noAdsTex;
+            loopSo.FindProperty("_shopSkinTexture").objectReferenceValue = shopSkinTex;
+            loopSo.FindProperty("_pickupsTexture").objectReferenceValue = pickupsTex;
+            loopSo.FindProperty("_parquetTexture").objectReferenceValue = parquetTex;
             loopSo.ApplyModifiedPropertiesWithoutUndo();
 
             var levelSo = new SerializedObject(levelService);
@@ -198,28 +221,8 @@ namespace RunRich3D.Editor
             levelSo.FindProperty("_legacyPath").objectReferenceValue = path;
             levelSo.FindProperty("_dollarPrefab").objectReferenceValue = dollarPrefab;
             levelSo.FindProperty("_bottlePrefab").objectReferenceValue = bottlePrefab;
-            levelSo.FindProperty("_groundMesh").objectReferenceValue = groundMesh;
-            levelSo.FindProperty("_boxMesh").objectReferenceValue = boxMesh;
-            levelSo.FindProperty("_flagMesh").objectReferenceValue = flagMesh;
-            levelSo.FindProperty("_choiceDoorMesh").objectReferenceValue = choiceDoorMesh;
-            levelSo.FindProperty("_partyMesh").objectReferenceValue = partyMesh;
-            levelSo.FindProperty("_studyMesh").objectReferenceValue = studyMesh;
-            levelSo.FindProperty("_finishBlueMesh").objectReferenceValue = finishBlue;
-            levelSo.FindProperty("_finishGreenMesh").objectReferenceValue = finishGreen;
-            levelSo.FindProperty("_finishOrangeMesh").objectReferenceValue = finishOrange;
-            levelSo.FindProperty("_finishYellowMesh").objectReferenceValue = finishYellow;
-            levelSo.FindProperty("_doorPoorMesh").objectReferenceValue = doorPoor;
-            levelSo.FindProperty("_doorRichMesh").objectReferenceValue = doorRich;
-            levelSo.FindProperty("_doorMillionMesh").objectReferenceValue = doorMillion;
-            levelSo.FindProperty("_pathMaterial").objectReferenceValue = enviroMat;
             levelSo.FindProperty("_moneyMaterial").objectReferenceValue = paperBloc != null ? paperBloc : propsFlat;
             levelSo.FindProperty("_bottleMaterial").objectReferenceValue = badDoorMat != null ? badDoorMat : propsFlatBad;
-            levelSo.FindProperty("_flagMaterial").objectReferenceValue = checkpointsMat;
-            levelSo.FindProperty("_choiceMaterial").objectReferenceValue = choiceMat;
-            levelSo.FindProperty("_finishMaterial").objectReferenceValue = finishMat;
-            levelSo.FindProperty("_goodDoorMaterial").objectReferenceValue = goodDoorMat;
-            levelSo.FindProperty("_poorDoorMaterial").objectReferenceValue = badDoorMat;
-            levelSo.FindProperty("_labelFont").objectReferenceValue = hudFont;
             levelSo.ApplyModifiedPropertiesWithoutUndo();
 
             DestroyComponent<GameBootstrap>(bootstrapRoot);
@@ -232,6 +235,8 @@ namespace RunRich3D.Editor
             bootstrapSo.FindProperty("_levelService").objectReferenceValue = levelService;
             bootstrapSo.FindProperty("_gameLoopService").objectReferenceValue = gameLoopService;
             bootstrapSo.ApplyModifiedPropertiesWithoutUndo();
+
+            LevelWorldBaker.BakeActiveScene();
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);

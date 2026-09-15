@@ -1,6 +1,5 @@
 using System;
 using UniRx;
-using UnityEngine;
 using RunRich3D.Models;
 using RunRich3D.Views;
 
@@ -8,31 +7,39 @@ namespace RunRich3D.Controllers
 {
     internal sealed class LevelController : IDisposable, ILevelEvents
     {
+        private readonly float _flagRaiseStart;
+        private readonly float _flagRaiseEnd;
         private readonly LevelModel _model;
         private readonly PlayerModel _player;
         private readonly LevelPieceView[] _pickupViews;
+        private readonly FlagView[] _flagViews;
         private readonly Subject<int> _finishReached = new Subject<int>();
+        private readonly Subject<int> _moneyCollected = new Subject<int>();
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
 
         internal LevelController(
             LevelModel model,
             PlayerModel player,
-            LevelPieceView[] pickupViews)
+            LevelPieceView[] pickupViews,
+            FlagView[] flagViews,
+            float flagRaiseStart,
+            float flagRaiseEnd)
         {
             _model = model;
             _player = player;
             _pickupViews = pickupViews;
+            _flagViews = flagViews;
+            _flagRaiseStart = flagRaiseStart;
+            _flagRaiseEnd = flagRaiseEnd;
         }
 
         public IObservable<int> FinishReached => _finishReached;
+        public IObservable<int> PickupCollected => _moneyCollected;
 
         internal void Initialize()
         {
-            Observable.CombineLatest(
-                    _player.LateralOffset,
-                    _player.ForwardPosition,
-                    (x, z) => new Vector2(x, z))
-                .Subscribe(Evaluate)
+            Observable.EveryUpdate()
+                .Subscribe(_ => Evaluate(_player.LateralOffset.Value, _player.ForwardPosition.Value))
                 .AddTo(_disposables);
 
             _player.Phase
@@ -46,19 +53,22 @@ namespace RunRich3D.Controllers
             _disposables.Dispose();
             _finishReached.OnCompleted();
             _finishReached.Dispose();
+            _moneyCollected.OnCompleted();
+            _moneyCollected.Dispose();
         }
 
-        private void Evaluate(Vector2 pose)
+        private void Evaluate(float x, float z)
         {
+            UpdateFlags(z);
             if (_player.Phase.Value != GamePhase.Playing)
             {
                 return;
             }
 
-            TryCollectPickups(pose.x, pose.y);
-            TryHitObstacles(pose.x, pose.y);
-            TryPassGate(pose.x, pose.y);
-            TryFinish(pose.x, pose.y);
+            TryCollectPickups(x, z);
+            TryHitObstacles(x, z);
+            TryPassGate(x, z);
+            TryFinish(x, z);
         }
 
         private void TryCollectPickups(float x, float z)
@@ -74,6 +84,11 @@ namespace RunRich3D.Controllers
 
                 pickup.Consume();
                 _player.AddWealth(pickup.WealthDelta);
+                if (pickup.WealthDelta != 0)
+                {
+                    _moneyCollected.OnNext(pickup.WealthDelta);
+                }
+
                 if (i < _pickupViews.Length)
                 {
                     _pickupViews[i].SetVisible(false);
@@ -106,7 +121,9 @@ namespace RunRich3D.Controllers
             }
 
             gate.Consume();
-            _player.AddWealth(gate.WealthDeltaFor(x));
+            int wealthDelta = gate.WealthDeltaFor(x);
+            _player.AddWealth(wealthDelta);
+            _player.ApplyGateReskin(wealthDelta);
         }
 
         private void TryFinish(float x, float z)
@@ -123,12 +140,51 @@ namespace RunRich3D.Controllers
             _finishReached.OnNext(multiplier);
         }
 
+        private void UpdateFlags(float forward)
+        {
+            if (_flagViews == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _flagViews.Length; i++)
+            {
+                _flagViews[i].SetRaised(RaiseAmount(forward, _flagViews[i].TriggerZ));
+            }
+        }
+
+        private float RaiseAmount(float playerZ, float flagZ)
+        {
+            float ahead = flagZ - playerZ;
+            if (ahead <= _flagRaiseEnd)
+            {
+                return 1f;
+            }
+
+            if (ahead >= _flagRaiseStart)
+            {
+                return 0f;
+            }
+
+            return 1f - (ahead - _flagRaiseEnd) / (_flagRaiseStart - _flagRaiseEnd);
+        }
+
         private void ResetRun()
         {
             _model.ResetRun();
             for (int i = 0; i < _pickupViews.Length; i++)
             {
                 _pickupViews[i].SetVisible(true);
+            }
+
+            if (_flagViews == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _flagViews.Length; i++)
+            {
+                _flagViews[i].SetRaised(0f);
             }
         }
     }

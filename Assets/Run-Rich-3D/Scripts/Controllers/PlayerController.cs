@@ -16,6 +16,7 @@ namespace RunRich3D.Controllers
         private readonly float _forwardSpeed;
         private readonly float _offPathSlack;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
+        private PathBend _path;
 
         private float _dragOriginScreenX;
         private float _dragOriginLateral;
@@ -44,7 +45,30 @@ namespace RunRich3D.Controllers
                     _model.LateralOffset,
                     _model.ForwardPosition,
                     (x, z) => new Vector2(x, z))
-                .Subscribe(pose => _view.SetPose(pose.x, pose.y))
+                .Subscribe(pose => ApplyPose(pose.x, pose.y))
+                .AddTo(_disposables);
+
+            _model.Wealth
+                .Subscribe(wealth => _view.SetStatus(
+                    _model.Rules.TierFrom(wealth),
+                    _model.Rules.Normalized(wealth)))
+                .AddTo(_disposables);
+
+            _model.Phase
+                .Where(phase => phase == GamePhase.WaitingToStart)
+                .Subscribe(_ => _view.SetOutfit(_model.OutfitIndex.Value, false))
+                .AddTo(_disposables);
+
+            _model.OutfitIndex
+                .Subscribe(index =>
+                {
+                    bool spin = _model.Phase.Value == GamePhase.Playing;
+                    _view.SetOutfit(index, spin);
+                })
+                .AddTo(_disposables);
+
+            _model.GateReskin
+                .Subscribe(index => _view.SetOutfit(index, true))
                 .AddTo(_disposables);
 
             _input.Pressed
@@ -65,9 +89,27 @@ namespace RunRich3D.Controllers
                 .AddTo(_disposables);
         }
 
+        internal void BindPath(PathBend path)
+        {
+            _path = path;
+            ApplyPose(_model.LateralOffset.Value, _model.ForwardPosition.Value);
+        }
+
         public void Dispose()
         {
             _disposables.Dispose();
+        }
+
+        private void ApplyPose(float lateral, float distance)
+        {
+            if (_path == null)
+            {
+                _view.SetPose(lateral, distance);
+                return;
+            }
+
+            PathPose pose = _path.Sample(distance, lateral);
+            _view.SetPose(new Vector3(pose.X, pose.Y, pose.Z), pose.YawDegrees);
         }
 
         private void OnPressed(float screenX)

@@ -38,8 +38,8 @@ namespace RunRich3D.Models
 
     internal sealed class PickupRecord : ConsumableRecord
     {
-        internal PickupRecord(PickupSpawn spawn)
-            : base(spawn.X, spawn.Z, 0.7f, 0.65f)
+        internal PickupRecord(PickupSpawn spawn, float halfWidth, float halfDepth)
+            : base(spawn.X, spawn.Z, halfWidth, halfDepth)
         {
             WealthDelta = spawn.WealthDelta;
         }
@@ -60,10 +60,10 @@ namespace RunRich3D.Models
 
     internal sealed class GateRecord
     {
-        internal GateRecord(GateSpawn spawn)
+        internal GateRecord(GateSpawn spawn, float depth)
         {
             Spawn = spawn;
-            Depth = 0.8f;
+            Depth = depth;
         }
 
         internal GateSpawn Spawn { get; }
@@ -72,14 +72,13 @@ namespace RunRich3D.Models
 
         internal bool Overlaps(float z)
         {
-            return !IsConsumed
-                   && z >= Spawn.Z - Depth
-                   && z <= Spawn.Z + Depth;
+            float lead = Depth > 0.1f ? Depth : 0.5f;
+            return !IsConsumed && z >= Spawn.Z - lead;
         }
 
         internal int WealthDeltaFor(float x)
         {
-            return x < 0f ? Spawn.LeftWealthDelta : Spawn.RightWealthDelta;
+            return x <= 0f ? Spawn.LeftWealthDelta : Spawn.RightWealthDelta;
         }
 
         internal void Consume()
@@ -136,12 +135,16 @@ namespace RunRich3D.Models
 
     internal sealed class LevelModel
     {
-        internal LevelModel(LevelLayout layout)
+        internal LevelModel(
+            LevelLayout layout,
+            float pickupHalfWidth,
+            float pickupHalfDepth,
+            float gateDepth)
         {
             Layout = layout;
-            Pickups = CreatePickups(layout.Pickups);
+            Pickups = CreatePickups(layout.Pickups, pickupHalfWidth, pickupHalfDepth);
             Obstacles = CreateObstacles(layout.Obstacles);
-            Gate = new GateRecord(layout.Gate);
+            Gate = new GateRecord(layout.Gate, gateDepth);
             Finish = new FinishRecord(layout.Finish);
         }
 
@@ -167,12 +170,12 @@ namespace RunRich3D.Models
             Finish.Reset();
         }
 
-        private static PickupRecord[] CreatePickups(PickupSpawn[] spawns)
+        private static PickupRecord[] CreatePickups(PickupSpawn[] spawns, float halfWidth, float halfDepth)
         {
             var records = new PickupRecord[spawns.Length];
             for (int i = 0; i < spawns.Length; i++)
             {
-                records[i] = new PickupRecord(spawns[i]);
+                records[i] = new PickupRecord(spawns[i], halfWidth, halfDepth);
             }
 
             return records;

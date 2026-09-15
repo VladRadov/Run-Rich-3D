@@ -6,8 +6,14 @@ namespace RunRich3D.Services
 {
     public sealed class CameraService : MonoBehaviour, IGameService
     {
+        [Header("References")]
         [SerializeField] private Camera _camera;
         [SerializeField] private PlayerService _playerService;
+
+        [Header("Follow")]
+        [SerializeField] private Vector3 _offset = new Vector3(0f, 5.8f, -8.4f);
+        [SerializeField] private float _pitch = 18f;
+        [SerializeField] private float _horizontalSmoothTime = 0.08f;
 
         private FollowCameraView _view;
         private CameraController _controller;
@@ -17,8 +23,13 @@ namespace RunRich3D.Services
         public void Initialize()
         {
             _view = EntityViewFactory.CreateOn<FollowCameraView>(_camera.gameObject);
+            _view.BindSettings(_offset, _pitch, _horizontalSmoothTime);
             _controller = new CameraController(_view, _playerService.View);
             _controller.Initialize();
+            if (_camera != null && _playerService.View != null)
+            {
+                _playerService.View.BindBannerCamera(_camera.transform);
+            }
         }
 
         public void Dispose()

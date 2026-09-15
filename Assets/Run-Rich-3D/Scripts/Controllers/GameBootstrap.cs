@@ -5,6 +5,7 @@ namespace RunRich3D.Controllers
 {
     public sealed class GameBootstrap : MonoBehaviour
     {
+        [Header("Services")]
         [SerializeField] private LightingService _lightingService;
         [SerializeField] private InputService _inputService;
         [SerializeField] private PlayerService _playerService;

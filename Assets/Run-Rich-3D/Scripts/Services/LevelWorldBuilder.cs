@@ -24,6 +24,8 @@ namespace RunRich3D.Services
                 Mesh doorPoorMesh,
                 Mesh doorRichMesh,
                 Mesh doorMillionMesh,
+                Mesh finishPlaneMesh,
+                Mesh finishStarMesh,
                 Material pathMaterial,
                 Material moneyMaterial,
                 Material bottleMaterial,
@@ -49,6 +51,8 @@ namespace RunRich3D.Services
                 DoorPoorMesh = doorPoorMesh;
                 DoorRichMesh = doorRichMesh;
                 DoorMillionMesh = doorMillionMesh;
+                FinishPlaneMesh = finishPlaneMesh;
+                FinishStarMesh = finishStarMesh;
                 PathMaterial = pathMaterial;
                 MoneyMaterial = moneyMaterial;
                 BottleMaterial = bottleMaterial;
@@ -75,6 +79,8 @@ namespace RunRich3D.Services
             internal Mesh DoorPoorMesh { get; }
             internal Mesh DoorRichMesh { get; }
             internal Mesh DoorMillionMesh { get; }
+            internal Mesh FinishPlaneMesh { get; }
+            internal Mesh FinishStarMesh { get; }
             internal Material PathMaterial { get; }
             internal Material MoneyMaterial { get; }
             internal Material BottleMaterial { get; }
@@ -86,30 +92,69 @@ namespace RunRich3D.Services
             internal Font LabelFont { get; }
         }
 
+        internal readonly struct BuiltLevel
+        {
+            internal BuiltLevel(LevelPieceView[] pickups, FlagView[] flags)
+            {
+                Pickups = pickups;
+                Flags = flags;
+            }
+
+            internal LevelPieceView[] Pickups { get; }
+            internal FlagView[] Flags { get; }
+        }
+
         private readonly Transform _root;
         private readonly Catalog _catalog;
+        private readonly LevelWorldTuning _tuning;
+        private readonly PathBend _path;
+        private readonly PickupPools _pickupPools;
         private Material _goldMaterial;
         private Material _bottleTintMaterial;
 
         private static readonly Quaternion FaceRunner = Quaternion.identity;
-        private const float PathSurfaceY = 0.5f;
 
-        internal LevelWorldBuilder(Transform root, Catalog catalog)
+        internal LevelWorldBuilder(Transform root, Catalog catalog, LevelWorldTuning tuning, PathBend path)
+            : this(root, catalog, tuning, path, null)
+        {
+        }
+
+        internal LevelWorldBuilder(
+            Transform root,
+            Catalog catalog,
+            LevelWorldTuning tuning,
+            PathBend path,
+            PickupPools pickupPools)
         {
             _root = root;
             _catalog = catalog;
+            _tuning = tuning;
+            _path = path ?? new PathBend(PathSegment.DefaultCourse(), 0f);
+            _pickupPools = pickupPools;
         }
 
-        internal LevelPieceView[] Build(LevelLayout layout)
+        internal BuiltLevel BuildRuntimePickups(LevelLayout layout)
         {
-            ClearRuntimeChildren();
-            BuildPath();
-            LevelPieceView[] pickupViews = BuildPickups(layout.Pickups);
+            if (_pickupPools != null)
+            {
+                _pickupPools.ReleaseAll();
+            }
+            else
+            {
+                ClearRuntimeChildren();
+            }
+
+            return new BuiltLevel(CreatePickupViews(_root, layout.Pickups), new FlagView[0]);
+        }
+
+        internal FlagView[] BakeStatic(LevelLayout layout)
+        {
+            BuildPath(layout);
             BuildObstacles(layout.Obstacles);
-            BuildFlags(layout.Flags);
+            FlagView[] flagViews = BuildFlags(layout.Flags);
             BuildGate(layout.Gate);
             BuildFinish(layout.Finish);
-            return pickupViews;
+            return flagViews;
         }
 
         private void ClearRuntimeChildren()
@@ -120,43 +165,141 @@ namespace RunRich3D.Services
             }
         }
 
-        private void BuildPath()
+        private void BuildPath(LevelLayout layout)
         {
             Transform group = CreateGroup("PathTiles");
-            for (int i = 0; i < LevelLayout.PathTileCount; i++)
+            float tileLength = layout.PathTileLength > 0.01f ? layout.PathTileLength : 7.5f;
+            PathBend.CompiledPiece[] pieces = _path.Pieces;
+            for (int p = 0; p < pieces.Length; p++)
             {
-                float z = LevelLayout.PathTileLength * 0.5f + i * LevelLayout.PathTileLength;
-                CreateMeshPiece(
-                    "Path_" + i,
-                    group,
-                    _catalog.GroundMesh,
-                    _catalog.PathMaterial,
-                    new Vector3(0f, 0f, z),
-                    Vector3.one,
-                    Quaternion.identity);
+                PathBend.CompiledPiece piece = pieces[p];
+                if (piece.IsTurn)
+                {
+                    continue;
+                }
+
+                float total = piece.Length;
+                if (p == pieces.Length - 1)
+                {
+                    total += tileLength;
+                }
+
+                float covered = 0f;
+                int tileIndex = 0;
+                while (covered < total - 0.02f)
+                {
+                    float remaining = total - covered;
+                    float thisLen = remaining < tileLength ? remaining : tileLength;
+                    if (thisLen < 0.05f)
+                    {
+                        break;
+                    }
+
+                    float mid = piece.StartDistance + covered + thisLen * 0.5f;
+                    PlaceMeshOnPath(
+                        "Path_" + p + "_" + tileIndex,
+                        group,
+                        _catalog.GroundMesh,
+                        _catalog.PathMaterial,
+                        0f,
+                        mid,
+                        0f,
+                        new Vector3(1f, 1f, thisLen / tileLength),
+                        Quaternion.identity);
+                    covered += thisLen;
+                    tileIndex++;
+                }
+            }
+
+            BuildBend(group);
+        }
+
+        private void BuildBend(Transform group)
+        {
+            if (_catalog.GroundMesh == null)
+            {
+                return;
+            }
+
+            int segments = _tuning.BendSegments > 4 ? _tuning.BendSegments : 18;
+            float halfWidth = _tuning.BendHalfWidth > 0.1f ? _tuning.BendHalfWidth : 3f;
+            float surfaceY = _catalog.GroundMesh != null
+                ? _catalog.GroundMesh.bounds.max.y
+                : (_tuning.BendSurfaceY > 0.01f ? _tuning.BendSurfaceY : 0.5f);
+            PathBend.CompiledPiece[] pieces = _path.Pieces;
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                PathBend.CompiledPiece piece = pieces[i];
+                if (!piece.IsTurn || piece.Radius < 0.01f)
+                {
+                    continue;
+                }
+
+                float absAngle = piece.SignedAngle < 0f ? -piece.SignedAngle : piece.SignedAngle;
+                if (absAngle <= 0.0001f)
+                {
+                    continue;
+                }
+
+                var go = new GameObject("PathBend_" + i);
+                go.transform.SetParent(group, false);
+                go.transform.localPosition = new Vector3(piece.StartX, surfaceY, piece.StartZ);
+                go.transform.localRotation = Quaternion.Euler(0f, piece.StartHeading * Mathf.Rad2Deg, 0f);
+                go.transform.localScale = Vector3.one;
+                if (go.GetComponent<MeshFilter>() == null)
+                {
+                    go.AddComponent<MeshFilter>();
+                }
+
+                var renderer = go.GetComponent<MeshRenderer>();
+                if (renderer == null)
+                {
+                    renderer = go.AddComponent<MeshRenderer>();
+                }
+
+                renderer.sharedMaterial = _catalog.PathMaterial;
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                var ribbon = go.GetComponent<PathRibbonView>();
+                if (ribbon == null)
+                {
+                    ribbon = go.AddComponent<PathRibbonView>();
+                }
+
+                ribbon.Bind(
+                    piece.Radius,
+                    absAngle * Mathf.Rad2Deg,
+                    piece.Sign >= 0f,
+                    segments,
+                    halfWidth,
+                    0.55f,
+                    _catalog.PathMaterial);
             }
         }
 
-        private LevelPieceView[] BuildPickups(PickupSpawn[] spawns)
+        private LevelPieceView[] CreatePickupViews(Transform group, PickupSpawn[] spawns)
         {
-            Transform group = CreateGroup("Pickups");
             var views = new LevelPieceView[spawns.Length];
             for (int i = 0; i < spawns.Length; i++)
             {
                 PickupSpawn spawn = spawns[i];
                 GameObject prefab = spawn.IsPositive ? _catalog.DollarPrefab : _catalog.BottlePrefab;
                 Material material = spawn.IsPositive
-                    ? ResolvePickupMaterial(true)
+                    ? null
                     : ResolvePickupMaterial(false);
-                Vector3 scale = spawn.IsPositive ? Vector3.one * 1.4f : Vector3.one * 1.15f;
+                Vector3 scale = spawn.IsPositive
+                    ? Vector3.one * _tuning.MoneyScale
+                    : Vector3.one * _tuning.BottleScale;
+                PathPose pose = _path.Sample(spawn.Z, spawn.X);
                 views[i] = CreatePrefabOrMesh(
                     spawn.IsPositive ? "Money_" + i : "Bottle_" + i,
                     group,
                     prefab,
                     null,
                     material,
-                    new Vector3(spawn.X, PathSurfaceY, spawn.Z),
-                    scale);
+                    new Vector3(pose.X, pose.Y, pose.Z),
+                    scale,
+                    Quaternion.Euler(0f, pose.YawDegrees, 0f),
+                    spawn.IsPositive);
             }
 
             return views;
@@ -168,101 +311,155 @@ namespace RunRich3D.Services
             for (int i = 0; i < spawns.Length; i++)
             {
                 ObstacleSpawn spawn = spawns[i];
-                CreateMeshPiece(
+                PlaceMeshOnPath(
                     "Obstacle_" + i,
                     group,
                     _catalog.BoxMesh,
                     _catalog.PoorDoorMaterial,
-                    new Vector3(spawn.X, 0f, spawn.Z),
+                    spawn.X,
+                    spawn.Z,
+                    0f,
                     Vector3.one,
                     Quaternion.identity);
             }
         }
 
-        private void BuildFlags(FlagSpawn[] spawns)
+        private FlagView[] BuildFlags(FlagSpawn[] spawns)
         {
             Transform group = CreateGroup("Flags");
-            CreateMeshPiece(
+            PlaceMeshOnPath(
                 "FlagStrip",
                 group,
                 _catalog.GroundMesh,
                 _catalog.FlagMaterial,
-                new Vector3(0f, 0.02f, 21.2f),
-                new Vector3(1f, 0.18f, 0.42f),
+                _tuning.FlagStripPosition.x,
+                _tuning.FlagStripPosition.z,
+                _tuning.FlagStripPosition.y,
+                _tuning.FlagStripScale,
                 Quaternion.identity);
 
+            var views = new FlagView[spawns.Length];
             for (int i = 0; i < spawns.Length; i++)
             {
-                FlagSpawn spawn = spawns[i];
-                Quaternion rotation = spawn.X < 0f
-                    ? Quaternion.Euler(0f, 90f, 0f)
-                    : Quaternion.Euler(0f, -90f, 0f);
-                CreateMeshPiece(
-                    "Flag_" + i,
-                    group,
-                    _catalog.FlagMesh,
-                    _catalog.FlagMaterial,
-                    new Vector3(spawn.X, 0f, spawn.Z),
-                    Vector3.one * 0.28f,
-                    rotation);
+                views[i] = CreateFlag(group, spawns[i], i);
             }
+
+            return views;
+        }
+
+        private FlagView CreateFlag(Transform group, FlagSpawn spawn, int index)
+        {
+            bool isLeft = spawn.X < 0f;
+            Quaternion up = isLeft
+                ? Quaternion.Euler(_tuning.LeftFlagUpEuler)
+                : Quaternion.Euler(_tuning.RightFlagUpEuler);
+            Quaternion down = isLeft
+                ? Quaternion.Euler(_tuning.LeftFlagDownEuler)
+                : Quaternion.Euler(_tuning.RightFlagDownEuler);
+
+            PathPose pose = _path.Sample(spawn.Z, spawn.X);
+            var go = new GameObject("Flag_" + index);
+            go.transform.SetParent(group, false);
+            go.transform.localPosition = new Vector3(pose.X, pose.Y, pose.Z);
+            go.transform.localRotation = Quaternion.Euler(0f, pose.YawDegrees, 0f) * down;
+            go.transform.localScale = Vector3.one * _tuning.FlagScale;
+
+            if (_catalog.FlagMesh != null)
+            {
+                var filter = go.AddComponent<MeshFilter>();
+                filter.sharedMesh = _catalog.FlagMesh;
+                var renderer = go.AddComponent<MeshRenderer>();
+                renderer.sharedMaterial = _catalog.FlagMaterial;
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+
+            SnapToPath(go);
+            var view = EntityViewFactory.CreateOn<FlagView>(go);
+            view.BindMotion(spawn.Z, Quaternion.Euler(0f, pose.YawDegrees, 0f) * down, Quaternion.Euler(0f, pose.YawDegrees, 0f) * up);
+            return view;
         }
 
         private void BuildGate(GateSpawn gate)
         {
             Transform group = CreateGroup("Gates");
-            CreateMeshPiece(
+            PlaceMeshOnPath(
                 "ChoiceLeft",
                 group,
                 _catalog.ChoiceDoorMesh,
                 _catalog.ChoiceMaterial,
-                new Vector3(-1.45f, 1.55f, gate.Z),
-                Vector3.one * 5.2f,
+                -_tuning.GateHalfX,
+                gate.Z,
+                _tuning.GateDoorY,
+                Vector3.one * _tuning.GateDoorScale,
                 FaceRunner);
-            CreateMeshPiece(
+            PlaceMeshOnPath(
                 "ChoiceRight",
                 group,
                 _catalog.ChoiceDoorMesh,
                 _catalog.ChoiceMaterial,
-                new Vector3(1.45f, 1.55f, gate.Z),
-                Vector3.one * 5.2f,
+                _tuning.GateHalfX,
+                gate.Z,
+                _tuning.GateDoorY,
+                Vector3.one * _tuning.GateDoorScale,
                 FaceRunner);
-            CreateMeshPiece(
+            PlaceMeshOnPath(
                 "PartyIcon",
                 group,
                 _catalog.PartyMesh,
                 _catalog.GoodDoorMaterial,
-                new Vector3(-1.45f, 0.85f, gate.Z),
-                Vector3.one * 4.2f,
+                -_tuning.GateHalfX,
+                gate.Z,
+                _tuning.GateIconY,
+                Vector3.one * _tuning.PartyIconScale,
                 FaceRunner);
-            CreateMeshPiece(
+            PlaceMeshOnPath(
                 "SchoolIcon",
                 group,
                 _catalog.StudyMesh,
                 _catalog.PoorDoorMaterial,
-                new Vector3(1.45f, 0.85f, gate.Z),
-                Vector3.one * 6.5f,
+                _tuning.GateHalfX,
+                gate.Z,
+                _tuning.GateIconY,
+                Vector3.one * _tuning.SchoolIconScale,
                 FaceRunner);
 
-            CreateLabel("PartyLabel", group, gate.LeftLabel, new Vector3(-1.45f, 2.45f, gate.Z), new Color(0.35f, 0.9f, 0.4f));
-            CreateLabel("SchoolLabel", group, gate.RightLabel, new Vector3(1.45f, 2.45f, gate.Z), new Color(1f, 0.45f, 0.3f));
+            CreateLabel("PartyLabel", group, gate.LeftLabel, -_tuning.GateHalfX, gate.Z, _tuning.GateLabelY, _tuning.PartyLabelColor);
+            CreateLabel("SchoolLabel", group, gate.RightLabel, _tuning.GateHalfX, gate.Z, _tuning.GateLabelY, _tuning.SchoolLabelColor);
         }
 
         private void BuildFinish(FinishSpawn finish)
         {
             Transform group = CreateGroup("Finish");
-            CreateMeshPiece(
+            Mesh planeMesh = _catalog.FinishPlaneMesh != null ? _catalog.FinishPlaneMesh : _catalog.GroundMesh;
+            Vector3 planeSize = _tuning.FinishPlaneSize.sqrMagnitude > 0.01f
+                ? _tuning.FinishPlaneSize
+                : new Vector3(5.4f, 0.05f, 3.4f);
+            PlaceFittedOnPath(
                 "FinishPlane",
                 group,
-                _catalog.GroundMesh,
+                planeMesh,
                 _catalog.FinishMaterial,
-                new Vector3(0f, 0.03f, finish.Z + 0.6f),
-                new Vector3(1f, 0.16f, 0.55f),
-                Quaternion.identity);
+                0f,
+                finish.Z + _tuning.FinishPlaneZOffset,
+                _tuning.FinishPlaneY,
+                planeSize);
 
-            PlaceFinishLane("LaneX2", group, _catalog.FinishYellowMesh, _catalog.DoorPoorMesh, _catalog.PoorDoorMaterial, -1.7f, finish.Z, "x2");
+            Vector3 starSize = _tuning.FinishStarSize.sqrMagnitude > 0.01f
+                ? _tuning.FinishStarSize
+                : new Vector3(2.8f, 0.04f, 1.1f);
+            PlaceFittedOnPath(
+                "FinishStars",
+                group,
+                _catalog.FinishStarMesh,
+                _catalog.FinishMaterial,
+                0f,
+                finish.Z,
+                _tuning.PathSurfaceY + 0.02f,
+                starSize);
+
+            PlaceFinishLane("LaneX2", group, _catalog.FinishYellowMesh, _catalog.DoorPoorMesh, _catalog.PoorDoorMaterial, -_tuning.FinishLaneX, finish.Z, "x2");
             PlaceFinishLane("LaneX3", group, _catalog.FinishOrangeMesh, _catalog.DoorRichMesh, _catalog.GoodDoorMaterial, 0f, finish.Z, "x3");
-            PlaceFinishLane("LaneX5", group, _catalog.FinishGreenMesh, _catalog.DoorMillionMesh, _catalog.GoodDoorMaterial, 1.7f, finish.Z, "x5");
+            PlaceFinishLane("LaneX5", group, _catalog.FinishGreenMesh, _catalog.DoorMillionMesh, _catalog.GoodDoorMaterial, _tuning.FinishLaneX, finish.Z, "x5");
         }
 
         private void PlaceFinishLane(
@@ -276,23 +473,27 @@ namespace RunRich3D.Services
             string label)
         {
             Transform lane = CreateGroup(name, parent);
-            CreateMeshPiece(
+            PlaceMeshOnPath(
                 "Panel",
                 lane,
                 panelMesh,
                 _catalog.FinishMaterial,
-                new Vector3(x, 0.9f, z),
-                Vector3.one * 3.6f,
+                x,
+                z,
+                _tuning.FinishPanelY,
+                Vector3.one * _tuning.FinishPanelScale,
                 FaceRunner);
-            CreateMeshPiece(
+            PlaceMeshOnPath(
                 "Door",
                 lane,
                 doorMesh,
                 doorMaterial,
-                new Vector3(x, 0f, z + 1.15f),
+                x,
+                z + _tuning.FinishDoorZOffset,
+                0f,
                 Vector3.one,
                 FaceRunner);
-            CreateLabel("Multiplier", lane, label, new Vector3(x, 2.15f, z), Color.white);
+            CreateLabel("Multiplier", lane, label, x, z, _tuning.FinishLabelY, Color.white);
         }
 
         private Transform CreateGroup(string name)
@@ -314,21 +515,153 @@ namespace RunRich3D.Services
             Mesh fallbackMesh,
             Material material,
             Vector3 position,
-            Vector3 scale)
+            Vector3 scale,
+            Quaternion rotation,
+            bool spin)
         {
+            LevelPieceView pooled = TryGetPooled(spin, prefab);
+            if (pooled != null)
+            {
+                return PlacePooled(pooled, name, parent, material, position, scale, rotation, spin);
+            }
+
             if (prefab != null)
             {
                 GameObject instance = Object.Instantiate(prefab, parent);
                 instance.name = name;
                 instance.transform.localPosition = position;
-                instance.transform.localRotation = Quaternion.identity;
+                instance.transform.localRotation = rotation;
                 instance.transform.localScale = scale;
                 Paint(instance, material);
                 SnapToPath(instance);
-                return BindPiece(instance);
+                return BindPiece(instance, spin);
             }
 
-            return CreateMeshPiece(name, parent, fallbackMesh, material, position, scale, Quaternion.identity);
+            return CreateMeshPiece(name, parent, fallbackMesh, material, position, scale, rotation);
+        }
+
+        private LevelPieceView TryGetPooled(bool spin, GameObject prefab)
+        {
+            if (_pickupPools == null || prefab == null)
+            {
+                return null;
+            }
+
+            if (spin && _pickupPools.Money != null)
+            {
+                return _pickupPools.Money.Get();
+            }
+
+            if (!spin && _pickupPools.Bottles != null)
+            {
+                return _pickupPools.Bottles.Get();
+            }
+
+            return null;
+        }
+
+        private LevelPieceView PlacePooled(
+            LevelPieceView view,
+            string name,
+            Transform parent,
+            Material material,
+            Vector3 position,
+            Vector3 scale,
+            Quaternion rotation,
+            bool spin)
+        {
+            GameObject instance = view.gameObject;
+            instance.name = name;
+            instance.transform.SetParent(parent, false);
+            instance.transform.localPosition = position;
+            instance.transform.localRotation = rotation;
+            instance.transform.localScale = scale;
+            Paint(instance, material);
+            SnapToPath(instance);
+            if (spin)
+            {
+                var spinning = view as PickupSpinView;
+                float speed = _tuning.MoneySpinDegreesPerSecond > 0.01f ? _tuning.MoneySpinDegreesPerSecond : 72f;
+                if (spinning != null)
+                {
+                    spinning.BindSpin(speed);
+                }
+            }
+            else
+            {
+                view.Bind();
+            }
+
+            view.SetVisible(true);
+            return view;
+        }
+
+        private void PlaceMeshOnPath(
+            string name,
+            Transform parent,
+            Mesh mesh,
+            Material material,
+            float lateral,
+            float distance,
+            float extraY,
+            Vector3 scale,
+            Quaternion localRotation)
+        {
+            PathPose pose = _path.Sample(distance, lateral);
+            CreateMeshPiece(
+                name,
+                parent,
+                mesh,
+                material,
+                new Vector3(pose.X, pose.Y + extraY, pose.Z),
+                scale,
+                Quaternion.Euler(0f, pose.YawDegrees, 0f) * localRotation);
+        }
+
+        private void PlaceFittedOnPath(
+            string name,
+            Transform parent,
+            Mesh mesh,
+            Material material,
+            float lateral,
+            float distance,
+            float extraY,
+            Vector3 targetSize)
+        {
+            PathPose pose = _path.Sample(distance, lateral);
+            Quaternion rotation = Quaternion.Euler(0f, pose.YawDegrees, 0f);
+            CreateFittedMesh(
+                name,
+                parent,
+                mesh,
+                material,
+                new Vector3(pose.X, pose.Y + extraY, pose.Z),
+                targetSize,
+                rotation);
+        }
+
+        private void CreateFittedMesh(
+            string name,
+            Transform parent,
+            Mesh mesh,
+            Material material,
+            Vector3 worldCenter,
+            Vector3 targetSize,
+            Quaternion rotation)
+        {
+            if (mesh == null)
+            {
+                return;
+            }
+
+            Bounds local = mesh.bounds;
+            Vector3 size = local.size;
+            Vector3 scale = new Vector3(
+                size.x > 0.0001f ? targetSize.x / size.x : 1f,
+                size.y > 0.0001f ? targetSize.y / size.y : 1f,
+                size.z > 0.0001f ? targetSize.z / size.z : 1f);
+            Vector3 position = worldCenter - rotation * Vector3.Scale(local.center, scale);
+            CreateMeshPiece(name, parent, mesh, material, position, scale, rotation);
         }
 
         private static LevelPieceView CreateMeshPiece(
@@ -358,19 +691,27 @@ namespace RunRich3D.Services
             return BindPiece(go);
         }
 
-        private void CreateLabel(string name, Transform parent, string text, Vector3 position, Color color)
+        private void CreateLabel(
+            string name,
+            Transform parent,
+            string text,
+            float lateral,
+            float distance,
+            float extraY,
+            Color color)
         {
+            PathPose pose = _path.Sample(distance, lateral);
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
-            go.transform.localPosition = position;
-            go.transform.localRotation = FaceRunner;
+            go.transform.localPosition = new Vector3(pose.X, pose.Y + extraY, pose.Z);
             go.AddComponent<MeshRenderer>();
             go.AddComponent<TextMesh>();
             var view = go.AddComponent<WorldLabelView>();
-            view.Bind(text, _catalog.LabelFont, color, 0.06f);
+            view.Bind(text, _catalog.LabelFont, color, _tuning.LabelCharacterSize, _tuning.LabelFontSize);
+            go.transform.localRotation = Quaternion.Euler(0f, pose.YawDegrees, 0f);
         }
 
-        private static void SnapToPath(GameObject instance)
+        private void SnapToPath(GameObject instance)
         {
             Renderer[] renderers = instance.GetComponentsInChildren<Renderer>(true);
             if (renderers.Length == 0)
@@ -384,7 +725,7 @@ namespace RunRich3D.Services
                 bounds.Encapsulate(renderers[i].bounds);
             }
 
-            float delta = PathSurfaceY - bounds.min.y;
+            float delta = _tuning.PathSurfaceY - bounds.min.y;
             instance.transform.position += new Vector3(0f, delta, 0f);
         }
 
@@ -394,7 +735,7 @@ namespace RunRich3D.Services
             {
                 if (_goldMaterial == null)
                 {
-                    _goldMaterial = CreateStandard(new Color(0.93f, 0.74f, 0.12f));
+                    _goldMaterial = CreateStandard(_tuning.MoneyTint);
                 }
 
                 return _goldMaterial;
@@ -402,20 +743,33 @@ namespace RunRich3D.Services
 
             if (_bottleTintMaterial == null)
             {
-                _bottleTintMaterial = CreateStandard(new Color(0.18f, 0.52f, 0.22f));
+                _bottleTintMaterial = CreateStandard(_tuning.BottleTint);
             }
 
             return _bottleTintMaterial;
         }
 
-        private static Material CreateStandard(Color tint)
+        private Material CreateStandard(Color tint)
         {
             Shader shader = Shader.Find("Standard");
             var material = new Material(shader);
             material.color = tint;
-            material.SetFloat("_Glossiness", 0.42f);
-            material.SetFloat("_Metallic", 0.15f);
+            material.SetFloat("_Glossiness", _tuning.PickupGlossiness);
+            material.SetFloat("_Metallic", _tuning.PickupMetallic);
             return material;
+        }
+
+        private LevelPieceView BindPiece(GameObject go, bool spin)
+        {
+            if (spin)
+            {
+                var spinning = EntityViewFactory.CreateOn<PickupSpinView>(go);
+                float speed = _tuning.MoneySpinDegreesPerSecond > 0.01f ? _tuning.MoneySpinDegreesPerSecond : 72f;
+                spinning.BindSpin(speed);
+                return spinning;
+            }
+
+            return BindPiece(go);
         }
 
         private static LevelPieceView BindPiece(GameObject go)

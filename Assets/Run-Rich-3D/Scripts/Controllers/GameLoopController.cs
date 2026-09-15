@@ -40,7 +40,7 @@ namespace RunRich3D.Controllers
                 .AddTo(_disposables);
 
             _player.Wealth
-                .Subscribe(_hud.SetWealth)
+                .Subscribe(_hud.SetRunScore)
                 .AddTo(_disposables);
 
             _loop.LevelNumber
@@ -72,8 +72,19 @@ namespace RunRich3D.Controllers
                 case GamePhase.Lose:
                     _hud.ShowResult("ПОРАЖЕНИЕ", "Попробуйте ещё раз", "ЗАНОВО", false);
                     break;
+                case GamePhase.WaitingToStart:
+                    _hud.ShowRun(FormatLevel(level), _player.Wealth.Value);
+                    _hud.SetSwipeHintVisible(true);
+                    _hud.SetSideButtonsVisible(true);
+                    _hud.SetWorldProgressVisible(true);
+                    _hud.SetCenterStatsVisible(false);
+                    break;
                 default:
                     _hud.ShowRun(FormatLevel(level), _player.Wealth.Value);
+                    _hud.SetSwipeHintVisible(false);
+                    _hud.SetSideButtonsVisible(false);
+                    _hud.SetWorldProgressVisible(false);
+                    _hud.SetCenterStatsVisible(true);
                     break;
             }
         }

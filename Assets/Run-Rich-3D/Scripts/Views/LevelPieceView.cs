@@ -4,6 +4,7 @@ namespace RunRich3D.Views
 {
     public class LevelPieceView : MonoBehaviour
     {
+        [Header("Renderer")]
         [SerializeField] private MeshRenderer _renderer;
 
         protected MeshRenderer CachedRenderer { get; private set; }

@@ -2,7 +2,8 @@
     "name": "RunRich3D",
     "rootNamespace": "RunRich3D",
     "references": [
-        "UniRx"
+        "UniRx",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

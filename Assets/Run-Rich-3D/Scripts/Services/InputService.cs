@@ -9,7 +9,12 @@ namespace RunRich3D.Services
 {
     public sealed class InputService : MonoBehaviour, IGameService
     {
+        [Header("References")]
         [SerializeField] private Transform _uiRoot;
+
+        [Header("Canvas")]
+        [SerializeField] private Vector2 _referenceResolution = new Vector2(1080f, 1920f);
+        [SerializeField] private float _matchWidthOrHeight = 1f;
 
         private InputModel _model;
         private SwipeInputView _view;
@@ -62,8 +67,8 @@ namespace RunRich3D.Services
                 canvas.sortingOrder = 0;
                 var scaler = canvasObject.AddComponent<CanvasScaler>();
                 scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                scaler.referenceResolution = new Vector2(1080f, 1920f);
-                scaler.matchWidthOrHeight = 1f;
+                scaler.referenceResolution = _referenceResolution;
+                scaler.matchWidthOrHeight = _matchWidthOrHeight;
                 canvasObject.AddComponent<GraphicRaycaster>();
             }
             else
