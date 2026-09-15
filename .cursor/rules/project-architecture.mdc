@@ -7,18 +7,23 @@ alwaysApply: true
 
 ## Directory Structure
 
-- Scripts: `Aim/Scripts/`
-- Sprites: `Aim/Sprites/`
-- Prefabs: `Aim/Prefabs/`
+Game content lives under `Assets/Run-Rich-3D/`, not `Aim/`.
+
+- Scripts: `Assets/Run-Rich-3D/Scripts/` (`Models/`, `Controllers/`, `Services/`, `Views/`)
+- Prefabs: `Assets/Run-Rich-3D/Prefabs/`
+- Other assets (sprites, audio, models, shaders): `Assets/Run-Rich-3D/OtherAssets/`
+- Scenes: `Assets/Run-Rich-3D/Scenes/`
+- Level Manager (existing): `Assets/Scripts/Level Manager/`
 
 ## Architecture
 
 - Follow SOLID for all C# classes.
-- Follow DRY. Check existing code in `Aim/Scripts/` for reusable utilities or base classes before writing new logic.
+- Follow DRY. Check existing code in `Assets/Run-Rich-3D/Scripts/` for reusable utilities or base classes before writing new logic.
 - Use MCP (Model-Controller-Presenter):
-  - **Model**: pure C# classes/structs with state and core logic (no `MonoBehaviour`).
-  - **Presenter**: coordinator/mediator using UniRx and UniTask to link Model and View.
-  - **View**: `MonoBehaviour` classes for UI rendering and input only.
+  - **Model**: pure C# classes/structs with state and core logic (no `MonoBehaviour`). Place in `Scripts/Models/`.
+  - **Presenter/Controller**: coordinator/mediator using `UniRx` and `UniTask` to link Model and View. Place in `Scripts/Controllers/`.
+  - **View**: `MonoBehaviour` classes for UI rendering and input only. Place in `Scripts/Views/`.
+  - **Services**: shared infrastructure and game services. Place in `Scripts/Services/`.
 
 ## Unity Performance
 
