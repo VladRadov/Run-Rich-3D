@@ -31,6 +31,7 @@ namespace RunRich3D.Editor
         private const string FinishMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/Plane_Finish.mat";
         private const string GoodDoorMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/GoodDoor.mat";
         private const string BadDoorMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/BadDoor.mat";
+        private const string PropsFlatMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/props_flat.mat";
         private const string FontPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Fonts/Inter-SemiBold.ttf";
 
         [MenuItem("Run Rich 3D/Bake Static Level Into Scene")]
@@ -67,6 +68,12 @@ namespace RunRich3D.Editor
                 flagProp.GetArrayElementAtIndex(i).objectReferenceValue = flags[i];
             }
 
+            SerializedProperty gateProp = so.FindProperty("_gateView");
+            if (gateProp != null)
+            {
+                gateProp.objectReferenceValue = staticGo.GetComponentInChildren<GateView>(true);
+            }
+
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -98,6 +105,7 @@ namespace RunRich3D.Editor
                 AssetDatabase.LoadAssetAtPath<Material>(FinishMatPath),
                 AssetDatabase.LoadAssetAtPath<Material>(GoodDoorMatPath),
                 AssetDatabase.LoadAssetAtPath<Material>(BadDoorMatPath),
+                AssetDatabase.LoadAssetAtPath<Material>(PropsFlatMatPath),
                 AssetDatabase.LoadAssetAtPath<Font>(FontPath));
         }
 

@@ -11,6 +11,7 @@ namespace RunRich3D.Services
         [SerializeField] private Transform _levelRoot;
         [SerializeField] private Transform _pickupRoot;
         [SerializeField] private FlagView[] _flagViews;
+        [SerializeField] private GateView _gateView;
         [SerializeField] private PlayerService _playerService;
         [SerializeField] private GameObject _legacyPath;
 
@@ -106,6 +107,7 @@ namespace RunRich3D.Services
                 _playerService.Model,
                 visuals.Pickups,
                 flags,
+                _gateView,
                 world.FlagRaiseStart > 0.01f ? world.FlagRaiseStart : 5.5f,
                 world.FlagRaiseEnd > 0.01f ? world.FlagRaiseEnd : 0.35f);
             _controller.Initialize();
@@ -256,6 +258,7 @@ namespace RunRich3D.Services
                 null,
                 _moneyMaterial,
                 _bottleMaterial,
+                null,
                 null,
                 null,
                 null,

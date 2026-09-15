@@ -13,6 +13,7 @@ namespace RunRich3D.Controllers
         private readonly PlayerModel _player;
         private readonly LevelPieceView[] _pickupViews;
         private readonly FlagView[] _flagViews;
+        private readonly GateView _gateView;
         private readonly Subject<int> _finishReached = new Subject<int>();
         private readonly Subject<int> _moneyCollected = new Subject<int>();
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
@@ -22,6 +23,7 @@ namespace RunRich3D.Controllers
             PlayerModel player,
             LevelPieceView[] pickupViews,
             FlagView[] flagViews,
+            GateView gateView,
             float flagRaiseStart,
             float flagRaiseEnd)
         {
@@ -29,6 +31,7 @@ namespace RunRich3D.Controllers
             _player = player;
             _pickupViews = pickupViews;
             _flagViews = flagViews;
+            _gateView = gateView;
             _flagRaiseStart = flagRaiseStart;
             _flagRaiseEnd = flagRaiseEnd;
         }
@@ -123,6 +126,10 @@ namespace RunRich3D.Controllers
             gate.Consume();
             int wealthDelta = gate.WealthDeltaFor(x);
             _player.AddWealth(wealthDelta);
+            if (_gateView != null)
+            {
+                _gateView.HidePassedSide(x <= 0f);
+            }
         }
 
         private void TryFinish(float x, float z)
@@ -171,6 +178,11 @@ namespace RunRich3D.Controllers
         private void ResetRun()
         {
             _model.ResetRun();
+            if (_gateView != null)
+            {
+                _gateView.ShowAll();
+            }
+
             for (int i = 0; i < _pickupViews.Length; i++)
             {
                 _pickupViews[i].SetVisible(true);

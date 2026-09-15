@@ -34,6 +34,7 @@ namespace RunRich3D.Services
                 Material finishMaterial,
                 Material goodDoorMaterial,
                 Material poorDoorMaterial,
+                Material propsMaterial,
                 Font labelFont)
             {
                 DollarPrefab = dollarPrefab;
@@ -61,6 +62,7 @@ namespace RunRich3D.Services
                 FinishMaterial = finishMaterial;
                 GoodDoorMaterial = goodDoorMaterial;
                 PoorDoorMaterial = poorDoorMaterial;
+                PropsMaterial = propsMaterial;
                 LabelFont = labelFont;
             }
 
@@ -89,6 +91,7 @@ namespace RunRich3D.Services
             internal Material FinishMaterial { get; }
             internal Material GoodDoorMaterial { get; }
             internal Material PoorDoorMaterial { get; }
+            internal Material PropsMaterial { get; }
             internal Font LabelFont { get; }
         }
 
@@ -423,31 +426,54 @@ namespace RunRich3D.Services
                 _tuning.GateDoorY,
                 Vector3.one * _tuning.GateDoorScale,
                 FaceRunner);
-            PlaceMeshOnPath(
+            PlaceCenteredOnPath(
                 "PartyIcon",
                 group,
                 _catalog.PartyMesh,
-                _catalog.PoorDoorMaterial,
+                _catalog.PropsMaterial,
                 -_tuning.GateHalfX,
                 gate.Z,
                 _tuning.GateIconY,
-                Vector3.one * _tuning.PartyIconScale,
-                FaceRunner);
-            PlaceMeshOnPath(
+                ResolveIconSize(_tuning.PartyIconSize));
+            PlaceCenteredOnPath(
                 "SchoolIcon",
                 group,
                 _catalog.StudyMesh,
-                _catalog.GoodDoorMaterial,
+                _catalog.PropsMaterial,
                 _tuning.GateHalfX,
                 gate.Z,
                 _tuning.GateIconY,
-                Vector3.one * _tuning.SchoolIconScale,
-                FaceRunner);
+                ResolveIconSize(_tuning.SchoolIconSize));
 
             CreateGateLabelBackdrop("PartyLabelBg", group, -_tuning.GateHalfX, gate.Z, _tuning.PartyLabelBgSize);
             CreateGateLabelBackdrop("SchoolLabelBg", group, _tuning.GateHalfX, gate.Z, _tuning.SchoolLabelBgSize);
             CreateLabel("PartyLabel", group, gate.LeftLabel, -_tuning.GateHalfX, gate.Z, _tuning.GateLabelY, _tuning.PartyLabelColor);
             CreateLabel("SchoolLabel", group, gate.RightLabel, _tuning.GateHalfX, gate.Z, _tuning.GateLabelY, _tuning.SchoolLabelColor);
+
+            var view = EntityViewFactory.CreateOn<GateView>(group.gameObject);
+            view.Bind(
+                new[]
+                {
+                    ChildObject(group, "ChoiceLeft"),
+                    ChildObject(group, "PartyIcon"),
+                    ChildObject(group, "PartyLabelBgOutline"),
+                    ChildObject(group, "PartyLabelBgFill"),
+                    ChildObject(group, "PartyLabel")
+                },
+                new[]
+                {
+                    ChildObject(group, "ChoiceRight"),
+                    ChildObject(group, "SchoolIcon"),
+                    ChildObject(group, "SchoolLabelBgOutline"),
+                    ChildObject(group, "SchoolLabelBgFill"),
+                    ChildObject(group, "SchoolLabel")
+                });
+        }
+
+        private static GameObject ChildObject(Transform parent, string name)
+        {
+            Transform child = parent.Find(name);
+            return child != null ? child.gameObject : null;
         }
 
         private void BuildFinish(FinishSpawn finish)
@@ -639,6 +665,43 @@ namespace RunRich3D.Services
                 new Vector3(pose.X, pose.Y + extraY, pose.Z),
                 scale,
                 Quaternion.Euler(0f, pose.YawDegrees, 0f) * localRotation);
+        }
+
+        private static Vector3 ResolveIconSize(Vector3 size)
+        {
+            if (size.sqrMagnitude > 0.01f)
+            {
+                return size;
+            }
+
+            return new Vector3(1.15f, 1.15f, 0.45f);
+        }
+
+        private void PlaceCenteredOnPath(
+            string name,
+            Transform parent,
+            Mesh mesh,
+            Material material,
+            float lateral,
+            float distance,
+            float extraY,
+            Vector3 targetSize)
+        {
+            if (mesh == null)
+            {
+                return;
+            }
+
+            PathPose pose = _path.Sample(distance, lateral);
+            Quaternion rotation = Quaternion.Euler(0f, pose.YawDegrees, 0f);
+            Bounds local = mesh.bounds;
+            float sx = local.size.x > 0.0001f ? targetSize.x / local.size.x : 1f;
+            float sy = local.size.y > 0.0001f ? targetSize.y / local.size.y : 1f;
+            float s = Mathf.Min(sx, sy);
+            Vector3 scale = Vector3.one * s;
+            Vector3 worldCenter = new Vector3(pose.X, pose.Y + extraY, pose.Z);
+            Vector3 position = worldCenter - rotation * Vector3.Scale(local.center, scale);
+            CreateMeshPiece(name, parent, mesh, material, position, scale, rotation);
         }
 
         private void PlaceFittedOnPath(

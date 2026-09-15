@@ -54,9 +54,11 @@ namespace RunRich3D.Services
         public float GateHalfX = 1.45f;
         public float GateDoorY = 0f;
         public float GateDoorScale = 1.45f;
-        public float GateIconY = 0.85f;
+        public float GateIconY = 1.01f;
         public float PartyIconScale = 4.2f;
         public float SchoolIconScale = 6.5f;
+        public Vector3 PartyIconSize = new Vector3(1.15f, 1.15f, 0.45f);
+        public Vector3 SchoolIconSize = new Vector3(1.15f, 1.15f, 0.45f);
         public float GateLabelY = 2.45f;
         public float GateDepth = 0.8f;
         public Color PartyLabelColor = new Color(1f, 0.45f, 0.3f);
