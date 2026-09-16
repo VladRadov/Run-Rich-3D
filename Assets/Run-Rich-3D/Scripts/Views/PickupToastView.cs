@@ -14,10 +14,16 @@ namespace RunRich3D.Views
         private RawImage _icon;
         private Vector2 _restPosition;
         private bool _built;
+        private int _targetAmount;
+        private float _displayedAmount;
+        private bool _hasAmount;
 
         internal void Bind(Font font, Texture2D dollarTexture, Vector2 restPosition)
         {
             _restPosition = restPosition;
+            _hasAmount = false;
+            _targetAmount = 0;
+            _displayedAmount = 0f;
             EnsureBuilt(font, dollarTexture);
             SetPresentation(1f, 0f);
         }
@@ -29,17 +35,59 @@ namespace RunRich3D.Views
 
         internal void SetDelta(int signedAmount)
         {
+            _targetAmount = signedAmount;
+            if (!_hasAmount)
+            {
+                _displayedAmount = 0f;
+                _hasAmount = true;
+            }
+
+            ApplyDeltaAppearance(Mathf.RoundToInt(_displayedAmount));
+        }
+
+        private void Update()
+        {
+            if (!_hasAmount || _label == null)
+            {
+                return;
+            }
+
+            float gap = _targetAmount - _displayedAmount;
+            if (Mathf.Abs(gap) < 0.05f)
+            {
+                _displayedAmount = _targetAmount;
+                ApplyDeltaAppearance(_targetAmount);
+                return;
+            }
+
+            float speed = Mathf.Max(28f, Mathf.Abs(gap) / 0.22f);
+            _displayedAmount = Mathf.MoveTowards(_displayedAmount, _targetAmount, speed * Time.deltaTime);
+            ApplyDeltaAppearance(Mathf.RoundToInt(_displayedAmount));
+        }
+
+        private void ApplyDeltaAppearance(int shown)
+        {
             if (_label != null)
             {
-                _label.text = signedAmount > 0
-                    ? "+" + signedAmount + " $"
-                    : signedAmount + " $";
-                _label.color = signedAmount >= 0 ? GainColor : LossColor;
+                if (shown > 0)
+                {
+                    _label.text = "+" + shown + " $";
+                }
+                else if (shown < 0)
+                {
+                    _label.text = shown + " $";
+                }
+                else
+                {
+                    _label.text = _targetAmount >= 0 ? "+0 $" : "0 $";
+                }
+
+                _label.color = _targetAmount >= 0 ? GainColor : LossColor;
             }
 
             if (_icon != null)
             {
-                _icon.color = signedAmount >= 0 ? Color.white : LossColor;
+                _icon.color = _targetAmount >= 0 ? Color.white : LossColor;
             }
         }
 

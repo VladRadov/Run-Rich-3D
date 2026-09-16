@@ -34,6 +34,10 @@ namespace RunRich3D.Views
         private Text _actionLabel;
         private RawImage _actionImage;
         private bool _built;
+        private int _runScoreTarget;
+        private float _runScoreDisplayed;
+        private int _coinsTarget;
+        private float _coinsDisplayed;
 
         internal IObservable<Unit> ActionClicked => _actionClicked;
 
@@ -70,7 +74,7 @@ namespace RunRich3D.Views
             _runRoot.gameObject.SetActive(true);
             _resultRoot.gameObject.SetActive(false);
             _levelLabel.text = levelText;
-            SetRunScore(runScore);
+            SnapRunScore(runScore);
         }
 
         internal void ShowResult(string title, string subtitle, string actionLabel, bool isWin)
@@ -92,10 +96,12 @@ namespace RunRich3D.Views
 
         internal void SetRunScore(int score)
         {
-            if (_runScoreLabel != null)
-            {
-                _runScoreLabel.text = score.ToString();
-            }
+            _runScoreTarget = score < 0 ? 0 : score;
+        }
+
+        internal void SetCoins(int coins)
+        {
+            _coinsTarget = coins < 0 ? 0 : coins;
         }
 
         internal void SetSwipeHintVisible(bool visible)
@@ -135,14 +141,6 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void SetCoins(int coins)
-        {
-            if (_coinsLabel != null)
-            {
-                _coinsLabel.text = coins.ToString();
-            }
-        }
-
         internal void SetLevel(string levelText)
         {
             if (_levelLabel == null)
@@ -151,6 +149,47 @@ namespace RunRich3D.Views
             }
 
             _levelLabel.text = levelText;
+        }
+
+        private void Update()
+        {
+            TickCounter(ref _runScoreDisplayed, _runScoreTarget, _runScoreLabel);
+            TickCounter(ref _coinsDisplayed, _coinsTarget, _coinsLabel);
+        }
+
+        private void SnapRunScore(int score)
+        {
+            _runScoreTarget = score < 0 ? 0 : score;
+            _runScoreDisplayed = _runScoreTarget;
+            ApplyCounterText(_runScoreLabel, _runScoreTarget);
+        }
+
+        private static void TickCounter(ref float displayed, int target, Text label)
+        {
+            if (label == null)
+            {
+                return;
+            }
+
+            float gap = target - displayed;
+            if (Mathf.Abs(gap) < 0.05f)
+            {
+                displayed = target;
+                ApplyCounterText(label, target);
+                return;
+            }
+
+            float speed = Mathf.Max(36f, Mathf.Abs(gap) / 0.28f);
+            displayed = Mathf.MoveTowards(displayed, target, speed * Time.deltaTime);
+            ApplyCounterText(label, Mathf.RoundToInt(displayed));
+        }
+
+        private static void ApplyCounterText(Text label, int value)
+        {
+            if (label != null)
+            {
+                label.text = value.ToString();
+            }
         }
 
         private void OnDestroy()
