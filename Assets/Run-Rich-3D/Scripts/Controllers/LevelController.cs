@@ -5,16 +5,15 @@ using RunRich3D.Views;
 
 namespace RunRich3D.Controllers
 {
-    internal sealed class LevelController : IDisposable, ILevelEvents
+    public sealed class LevelController : IDisposable, ILevelEvents
     {
-        private readonly float _flagRaiseStart;
-        private readonly float _flagRaiseEnd;
         private readonly LevelModel _model;
         private readonly PlayerModel _player;
         private readonly LevelPieceView[] _pickupViews;
-        private readonly FlagView[] _flagViews;
         private readonly GateView _gateView;
         private readonly FinishDoorsView _finishDoors;
+        private readonly LevelPresentationController _presentation;
+        private readonly int _minDoorMultiplier;
         private readonly Subject<int> _finishReached = new Subject<int>();
         private readonly Subject<int> _moneyCollected = new Subject<int>();
         private readonly Subject<int> _wealthGained = new Subject<int>();
@@ -23,7 +22,7 @@ namespace RunRich3D.Controllers
         private readonly Subject<Unit> _doorOpened = new Subject<Unit>();
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
 
-        internal LevelController(
+        public LevelController(
             LevelModel model,
             PlayerModel player,
             LevelPieceView[] pickupViews,
@@ -31,16 +30,17 @@ namespace RunRich3D.Controllers
             GateView gateView,
             FinishDoorsView finishDoors,
             float flagRaiseStart,
-            float flagRaiseEnd)
+            float flagRaiseEnd,
+            float flagRaiseDetectThreshold,
+            int minDoorMultiplier)
         {
             _model = model;
             _player = player;
             _pickupViews = pickupViews;
-            _flagViews = flagViews;
             _gateView = gateView;
             _finishDoors = finishDoors;
-            _flagRaiseStart = flagRaiseStart;
-            _flagRaiseEnd = flagRaiseEnd;
+            _minDoorMultiplier = minDoorMultiplier < 2 ? 2 : minDoorMultiplier;
+            _presentation = new LevelPresentationController(flagViews, finishDoors, flagRaiseStart, flagRaiseEnd, flagRaiseDetectThreshold);
         }
 
         public IObservable<int> FinishReached => _finishReached;
@@ -50,7 +50,7 @@ namespace RunRich3D.Controllers
         public IObservable<Unit> FlagRaised => _flagRaised;
         public IObservable<Unit> DoorOpened => _doorOpened;
 
-        internal void Initialize()
+        public void Initialize()
         {
             Observable.EveryUpdate()
                 .Subscribe(_ => Evaluate(_player.LateralOffset.Value, _player.ForwardPosition.Value))
@@ -82,8 +82,18 @@ namespace RunRich3D.Controllers
         private void Evaluate(float x, float z)
         {
             bool playing = _player.Phase.Value == GamePhase.Playing;
-            UpdateFlags(z, playing);
-            UpdateFinishDoors(z, playing);
+            int flags = _presentation.UpdateFlags(z, playing);
+            for (int i = 0; i < flags; i++)
+            {
+                _flagRaised.OnNext(Unit.Default);
+            }
+
+            int doors = _presentation.UpdateDoors(z, playing);
+            for (int i = 0; i < doors; i++)
+            {
+                _doorOpened.OnNext(Unit.Default);
+            }
+
             if (!playing)
             {
                 return;
@@ -171,62 +181,8 @@ namespace RunRich3D.Controllers
             }
 
             finish.Consume();
-            int multiplier = _finishDoors != null ? _finishDoors.DoorMultiplier(z) : 2;
+            int multiplier = _finishDoors != null ? _finishDoors.DoorMultiplier(z) : _minDoorMultiplier;
             _finishReached.OnNext(multiplier);
-        }
-
-        private void UpdateFlags(float forward, bool playing)
-        {
-            if (_flagViews == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _flagViews.Length; i++)
-            {
-                float amount = RaiseAmount(forward, _flagViews[i].TriggerZ);
-                if (playing && _flagViews[i].Raised <= 0.01f && amount > 0.01f)
-                {
-                    _flagRaised.OnNext(Unit.Default);
-                }
-
-                _flagViews[i].SetRaised(amount);
-            }
-        }
-
-        private void UpdateFinishDoors(float forward, bool playing)
-        {
-            if (_finishDoors == null)
-            {
-                return;
-            }
-
-            int opened = _finishDoors.UpdateOpen(forward);
-            if (!playing)
-            {
-                return;
-            }
-
-            for (int i = 0; i < opened; i++)
-            {
-                _doorOpened.OnNext(Unit.Default);
-            }
-        }
-
-        private float RaiseAmount(float playerZ, float flagZ)
-        {
-            float ahead = flagZ - playerZ;
-            if (ahead <= _flagRaiseEnd)
-            {
-                return 1f;
-            }
-
-            if (ahead >= _flagRaiseStart)
-            {
-                return 0f;
-            }
-
-            return 1f - (ahead - _flagRaiseEnd) / (_flagRaiseStart - _flagRaiseEnd);
         }
 
         private void NotifyWealthDelta(int wealthDelta)
@@ -254,18 +210,7 @@ namespace RunRich3D.Controllers
                 _pickupViews[i].SetVisible(true);
             }
 
-            if (_flagViews != null)
-            {
-                for (int i = 0; i < _flagViews.Length; i++)
-                {
-                    _flagViews[i].SetRaised(0f);
-                }
-            }
-
-            if (_finishDoors != null)
-            {
-                _finishDoors.Close();
-            }
+            _presentation.Reset();
         }
     }
 }

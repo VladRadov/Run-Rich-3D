@@ -11,9 +11,9 @@ namespace RunRich3D.Views
         private readonly Subject<float> _moved = new Subject<float>();
         private readonly Subject<Unit> _released = new Subject<Unit>();
 
-        internal IObservable<float> Pressed => _pressed;
-        internal IObservable<float> Moved => _moved;
-        internal IObservable<Unit> Released => _released;
+        public IObservable<float> Pressed => _pressed;
+        public IObservable<float> Moved => _moved;
+        public IObservable<Unit> Released => _released;
 
         public void OnPointerDown(PointerEventData eventData)
         {

@@ -2,20 +2,20 @@ using UniRx;
 
 namespace RunRich3D.Models
 {
-    internal sealed class GameLoopModel
+    public sealed class GameLoopModel
     {
-        internal IReadOnlyReactiveProperty<int> LevelNumber => _levelNumber;
-        internal IReadOnlyReactiveProperty<int> BankedCoins => _bankedCoins;
+        public IReadOnlyReactiveProperty<int> LevelNumber => _levelNumber;
+        public IReadOnlyReactiveProperty<int> BankedCoins => _bankedCoins;
 
         private readonly IntReactiveProperty _levelNumber = new IntReactiveProperty(1);
         private readonly IntReactiveProperty _bankedCoins = new IntReactiveProperty(0);
 
-        internal void AdvanceLevel()
+        public void AdvanceLevel()
         {
             _levelNumber.Value += 1;
         }
 
-        internal void AddBankedCoins(int amount)
+        public void AddBankedCoins(int amount)
         {
             if (amount <= 0)
             {

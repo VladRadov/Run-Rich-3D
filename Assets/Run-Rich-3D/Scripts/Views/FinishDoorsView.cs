@@ -9,18 +9,48 @@ namespace RunRich3D.Views
         [SerializeField] private float _openEnd = 0.35f;
         [SerializeField] private float _openAngle = 95f;
         [SerializeField] private float _stopGap = 2.8f;
-
-        private const string ClosedLaneName = "LaneX5";
+        [SerializeField] private float _passEpsilon = 0.05f;
+        [SerializeField] private string _closedLaneName = "LaneX5";
 
         private readonly List<Gate> _gates = new List<Gate>();
+        private Vector3 _pathForward = Vector3.forward;
         private Vector3 _inward = Vector3.right;
         private Vector3 _pathOrigin;
         private float _originForward;
+        private float _afterLastOpenPadding = 1.2f;
+        private float _closedLaneClamp = 0.8f;
         private bool _bound;
 
-        internal void Bind(Vector3 inwardWorld, Vector3 pathOrigin, float originForward)
+        public void BindSettings(
+            float openStart,
+            float openEnd,
+            float openAngle,
+            float stopGap,
+            float afterLastOpenPadding,
+            float closedLaneClamp,
+            float passEpsilon,
+            string closedLaneName)
         {
-            _inward = inwardWorld.sqrMagnitude > 0.01f ? inwardWorld.normalized : transform.right;
+            _openStart = openStart;
+            _openEnd = openEnd;
+            _openAngle = openAngle;
+            _stopGap = stopGap;
+            _afterLastOpenPadding = afterLastOpenPadding;
+            _closedLaneClamp = closedLaneClamp;
+            _passEpsilon = passEpsilon;
+            if (!string.IsNullOrEmpty(closedLaneName))
+            {
+                _closedLaneName = closedLaneName;
+            }
+        }
+
+        public void Bind(Vector3 pathForwardWorld, Vector3 pathOrigin, float originForward)
+        {
+            Vector3 forward = pathForwardWorld;
+            forward.y = 0f;
+            _pathForward = forward.sqrMagnitude > 0.01f ? forward.normalized : Vector3.forward;
+            Vector3 inward = Vector3.Cross(Vector3.up, _pathForward);
+            _inward = inward.sqrMagnitude > 0.01f ? inward.normalized : Vector3.right;
             _pathOrigin = pathOrigin;
             _originForward = originForward;
             _gates.Clear();
@@ -31,16 +61,16 @@ namespace RunRich3D.Views
             Close();
         }
 
-        internal float LastTrigger { get; private set; }
+        public float LastTrigger { get; private set; }
 
-        internal float StopForward { get; private set; }
+        public float StopForward { get; private set; }
 
-        internal int DoorMultiplier(float playerForward)
+        public int DoorMultiplier(float playerForward)
         {
             int passed = 0;
             for (int i = 0; i < _gates.Count; i++)
             {
-                if (playerForward + 0.05f >= _gates[i].Trigger)
+                if (playerForward + _passEpsilon >= _gates[i].Trigger)
                 {
                     passed++;
                 }
@@ -54,7 +84,7 @@ namespace RunRich3D.Views
             return passed + 1;
         }
 
-        internal int UpdateOpen(float playerForward)
+        public int UpdateOpen(float playerForward)
         {
             if (!_bound)
             {
@@ -73,7 +103,7 @@ namespace RunRich3D.Views
             return opened;
         }
 
-        internal void Close()
+        public void Close()
         {
             if (!_bound)
             {
@@ -137,12 +167,18 @@ namespace RunRich3D.Views
                 return;
             }
 
-            float afterLastOpen = LastTrigger + 1.2f;
+            float afterLastOpen = LastTrigger + _afterLastOpenPadding;
             float beforeClosed = closedTrigger - _stopGap;
             StopForward = beforeClosed > afterLastOpen ? beforeClosed : afterLastOpen;
-            if (StopForward > closedTrigger - 0.8f)
+            float closedLimit = closedTrigger - _closedLaneClamp;
+            if (closedLimit > LastTrigger && StopForward > closedLimit)
             {
-                StopForward = closedTrigger - 0.8f;
+                StopForward = closedLimit;
+            }
+
+            if (StopForward < LastTrigger)
+            {
+                StopForward = LastTrigger;
             }
         }
 
@@ -152,16 +188,37 @@ namespace RunRich3D.Views
             CollectDoorTriggers(node, triggers);
             if (triggers.Count == 0)
             {
+                CollectMeshTriggers(node, triggers);
+            }
+
+            if (triggers.Count == 0)
+            {
                 return TriggerOf(node.position);
             }
 
-            float sum = 0f;
-            for (int i = 0; i < triggers.Count; i++)
+            float max = triggers[0];
+            for (int i = 1; i < triggers.Count; i++)
             {
-                sum += triggers[i];
+                if (triggers[i] > max)
+                {
+                    max = triggers[i];
+                }
             }
 
-            return sum / triggers.Count;
+            return max;
+        }
+
+        private void CollectMeshTriggers(Transform node, List<float> triggers)
+        {
+            if (node.GetComponent<MeshFilter>() != null)
+            {
+                triggers.Add(TriggerOf(node.position));
+            }
+
+            for (int i = 0; i < node.childCount; i++)
+            {
+                CollectMeshTriggers(node.GetChild(i), triggers);
+            }
         }
 
         private void CollectDoorTriggers(Transform node, List<float> triggers)
@@ -240,10 +297,11 @@ namespace RunRich3D.Views
                 return false;
             }
 
-            float angle = Vector3.SignedAngle(closedDir, _inward, Vector3.up);
+            closedDir.Normalize();
+            float angle = Vector3.SignedAngle(closedDir, _pathForward, Vector3.up);
             if (Mathf.Abs(angle) < 12f || Mathf.Abs(angle) > 150f)
             {
-                angle = _openAngle * Mathf.Sign(Vector3.Cross(closedDir, _inward).y);
+                angle = _openAngle * LeafOpenSign(leaf.position);
             }
 
             angle = Mathf.Clamp(angle, -_openAngle, _openAngle);
@@ -251,11 +309,19 @@ namespace RunRich3D.Views
             return true;
         }
 
+        private float LeafOpenSign(Vector3 worldPos)
+        {
+            Vector3 delta = worldPos - _pathOrigin;
+            delta.y = 0f;
+            float lateral = Vector3.Dot(delta, _inward);
+            return lateral >= 0f ? -1f : 1f;
+        }
+
         private float TriggerOf(Vector3 worldPos)
         {
             Vector3 delta = worldPos - _pathOrigin;
             delta.y = 0f;
-            return _originForward + Vector3.Dot(delta, _inward);
+            return _originForward + Vector3.Dot(delta, _pathForward);
         }
 
         private static float AverageTrigger(List<Leaf> leaves)
@@ -280,9 +346,9 @@ namespace RunRich3D.Views
             return leaf.TransformVector(Vector3.right);
         }
 
-        private static bool IsClosedLane(string name)
+        private bool IsClosedLane(string name)
         {
-            return string.Equals(name, ClosedLaneName, System.StringComparison.OrdinalIgnoreCase);
+            return string.Equals(name, _closedLaneName, System.StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsBakedPlaque(string name)
@@ -300,15 +366,15 @@ namespace RunRich3D.Views
             private readonly Leaf[] _leaves;
             private float _open = -1f;
 
-            internal Gate(Leaf[] leaves, float trigger)
+            public Gate(Leaf[] leaves, float trigger)
             {
                 _leaves = leaves;
                 Trigger = trigger;
             }
 
-            internal float Trigger { get; }
+            public float Trigger { get; }
 
-            internal bool SetOpen(float open)
+            public bool SetOpen(float open)
             {
                 float t = Mathf.Clamp01(open);
                 if (Mathf.Abs(t - _open) < 0.001f)
@@ -334,7 +400,7 @@ namespace RunRich3D.Views
             private readonly Quaternion _closed;
             private readonly Quaternion _delta;
 
-            internal Leaf(Transform transform, Quaternion closed, Quaternion delta, float trigger)
+            public Leaf(Transform transform, Quaternion closed, Quaternion delta, float trigger)
             {
                 _transform = transform;
                 _closed = closed;
@@ -342,9 +408,9 @@ namespace RunRich3D.Views
                 Trigger = trigger;
             }
 
-            internal float Trigger { get; }
+            public float Trigger { get; }
 
-            internal void Apply(float t)
+            public void Apply(float t)
             {
                 if (_transform != null)
                 {

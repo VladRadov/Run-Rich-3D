@@ -2,15 +2,15 @@ using UniRx;
 
 namespace RunRich3D.Models
 {
-    internal sealed class PickupToastModel
+    public sealed class PickupToastModel
     {
         private readonly IntReactiveProperty _amount = new IntReactiveProperty(0);
         private readonly BoolReactiveProperty _visible = new BoolReactiveProperty(false);
 
-        internal IReadOnlyReactiveProperty<int> Amount => _amount;
-        internal IReadOnlyReactiveProperty<bool> IsVisible => _visible;
+        public IReadOnlyReactiveProperty<int> Amount => _amount;
+        public IReadOnlyReactiveProperty<bool> IsVisible => _visible;
 
-        internal void Add(int delta)
+        public void Add(int delta)
         {
             if (delta <= 0)
             {
@@ -21,7 +21,7 @@ namespace RunRich3D.Models
             _visible.Value = true;
         }
 
-        internal void Hide()
+        public void Hide()
         {
             _visible.Value = false;
             _amount.Value = 0;

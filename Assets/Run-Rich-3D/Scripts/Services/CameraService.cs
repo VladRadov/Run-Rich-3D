@@ -1,5 +1,7 @@
 using UnityEngine;
+using Zenject;
 using RunRich3D.Controllers;
+using RunRich3D.Settings;
 using RunRich3D.Views;
 
 namespace RunRich3D.Services
@@ -8,23 +10,29 @@ namespace RunRich3D.Services
     {
         [Header("References")]
         [SerializeField] private Camera _camera;
-        [SerializeField] private PlayerService _playerService;
 
-        [Header("Follow")]
-        [SerializeField] private Vector3 _offset = new Vector3(0f, 5.8f, -8.4f);
-        [SerializeField] private float _pitch = 18f;
-        [SerializeField] private float _horizontalSmoothTime = 0.08f;
-
+        private CameraSettings _settings;
+        private PlayerService _playerService;
         private FollowCameraView _view;
         private CameraController _controller;
 
-        internal FollowCameraView View => _view;
+        public FollowCameraView View => _view;
+
+        [Inject]
+        public void Construct(CameraSettings settings, PlayerService playerService)
+        {
+            _settings = settings;
+            _playerService = playerService;
+        }
 
         public void Initialize()
         {
             _view = EntityViewFactory.CreateOn<FollowCameraView>(_camera.gameObject);
-            _view.BindSettings(_offset, _pitch, _horizontalSmoothTime);
+            _view.BindSettings(_settings.FollowOffset, _settings.PitchDegrees, _settings.HorizontalSmoothTime);
             _camera.clearFlags = CameraClearFlags.Skybox;
+            _camera.fieldOfView = _settings.FieldOfView;
+            _camera.nearClipPlane = _settings.NearClip;
+            _camera.farClipPlane = _settings.FarClip;
             _controller = new CameraController(_view, _playerService.View);
             _controller.Initialize();
             if (_camera != null && _playerService.View != null)

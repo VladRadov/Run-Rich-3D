@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b11c2d3e4f5061728394a5b6c7d8e025, type: 3}
+  m_Name: HudSettings
+  m_EditorClassIdentifier: 
+  _font: {fileID: 12800000, guid: ad1895673bab15440a55714514b568e8, type: 3}
+  _buttonTexture: {fileID: 2800000, guid: 3bf2b81ef1b1a434a86d3658a18c6d49, type: 3}
+  _retryTexture: {fileID: 2800000, guid: ea498bc3b98e1c044bb615f08a52dfe6, type: 3}
+  _dollarTexture: {fileID: 2800000, guid: 1cb9b4d508e03af40b45bc755089c49f, type: 3}
+  _billsTexture: {fileID: 2800000, guid: 1fe5f1f7d033e8746bb3b3ecdfb4b735, type: 3}
+  _arrowTexture: {fileID: 2800000, guid: c1222598beed1cd4eb66b6f052a8687a, type: 3}
+  _fingerTexture: {fileID: 2800000, guid: 93caa66093b170a4ab07d8389eb27201, type: 3}
+  _settingsTexture: {fileID: 2800000, guid: b16c8e689614fd246b78357b3aad872b, type: 3}
+  _noAdsTexture: {fileID: 2800000, guid: 5b012218c92c0c14b8f52b752f1dde21, type: 3}
+  _shopSkinTexture: {fileID: 2800000, guid: 7a0a2283f1c36e64ebb832eb8898d458, type: 3}
+  _pickupsTexture: {fileID: 2800000, guid: 3c8d3a61127e69d499c643b7111972d1, type: 3}
+  _parquetTexture: {fileID: 2800000, guid: 295b07acd9597d14c86209d0642200f5, type: 3}
+  _winBannerTexture: {fileID: 2800000, guid: 14e4534faca7b134f9606b5eac9d1f08, type: 3}
+  _winGaugeTexture: {fileID: 2800000, guid: bf08db3b89de7b74e8636cbea7f21636, type: 3}
+  _winNeedleTexture: {fileID: 2800000, guid: 616b37481c6deb14682078a746aa7e8b, type: 3}
+  _winOrangeButtonTexture: {fileID: 2800000, guid: 25ab6a94441b18e4ea8bcbb6afd6964f, type: 3}
+  _winBlueButtonTexture: {fileID: 2800000, guid: 67847362f227c524e9e04af1ef7aa75a, type: 3}
+  _winPlayTexture: {fileID: 2800000, guid: 6b92d031e6e73394ca936a620019c2f5, type: 3}
+  _loseBannerTexture: {fileID: 2800000, guid: 862068228abaef94aba59c996954fc35, type: 3}
+  _loseButtonTexture: {fileID: 2800000, guid: 99fde1c45c2b3d34a9b6045c932d97c7, type: 3}
+  _loseAbsX: 3.2
+  _minDoorMultiplier: 2
+  _levelLabelPrefix: "\u0423\u0440\u043E\u0432\u0435\u043D\u044C "
+  _resultDimmerAlpha: 0.18
+  _counterSnapGap: 0.05
+  _counterMinSpeed: 36
+  _counterCatchUpSeconds: 0.28
+  _toastHoldSeconds: 1.1
+  _toastFadeSeconds: 0.45
+  _toastRisePixels: 90
+  _toastRestPosition: {x: 0, y: 80}
+  _adMultipliers:
+  - 2
+  - 3
+  - 4
+  - 5
+  _needleSweepSpeed: 1.15
+  _needleMinAngle: -72
+  _needleMaxAngle: 72
+  _winDoneText: "\u0417\u0410\u0412\u0415\u0420\u0428\u0415\u041D\u041E"
+  _claimText: "\u041F\u041E\u041B\u0423\u0427\u0418\u0422\u042C"
+  _retryText: "\u041F\u041E\u0412\u0422\u041E\u0420\u0418\u0422\u042C"
+  _failText: "\u041D\u0415\u0423\u0414\u0410\u0427\u0410"
+  _bannerDropSeconds: 0.42

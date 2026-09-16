@@ -2,34 +2,35 @@ using System;
 using UniRx;
 using UnityEngine;
 using RunRich3D.Models;
+using RunRich3D.Settings;
 using RunRich3D.Views;
 
 namespace RunRich3D.Controllers
 {
-    internal sealed class GameLoopController : IDisposable
+    public sealed class GameLoopController : IDisposable
     {
         private readonly GameLoopModel _loop;
         private readonly PlayerModel _player;
         private readonly HudView _hud;
         private readonly ILevelEvents _levelEvents;
-        private readonly float _loseAbsX;
+        private readonly HudSettings _settings;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
 
-        internal GameLoopController(
+        public GameLoopController(
             GameLoopModel loop,
             PlayerModel player,
             HudView hud,
             ILevelEvents levelEvents,
-            float loseAbsX)
+            HudSettings settings)
         {
             _loop = loop;
             _player = player;
             _hud = hud;
             _levelEvents = levelEvents;
-            _loseAbsX = loseAbsX;
+            _settings = settings;
         }
 
-        internal void Initialize()
+        public void Initialize()
         {
             _hud.ActionClicked
                 .Subscribe(_ => OnHudAction())
@@ -103,7 +104,7 @@ namespace RunRich3D.Controllers
                 return;
             }
 
-            int multiplier = doorMultiplier < 2 ? 2 : doorMultiplier;
+            int multiplier = doorMultiplier < _settings.MinDoorMultiplier ? _settings.MinDoorMultiplier : doorMultiplier;
             int reward = _player.Wealth.Value * multiplier;
             _player.SetPhase(GamePhase.Win);
             _hud.ShowWin(_loop.LevelNumber.Value, reward);
@@ -118,7 +119,7 @@ namespace RunRich3D.Controllers
 
         private void CheckWater(float lateralOffset)
         {
-            if (_player.Phase.Value == GamePhase.Playing && Mathf.Abs(lateralOffset) >= _loseAbsX)
+            if (_player.Phase.Value == GamePhase.Playing && Mathf.Abs(lateralOffset) >= _settings.LoseAbsX)
             {
                 _player.SetPhase(GamePhase.Lose);
             }
@@ -132,9 +133,9 @@ namespace RunRich3D.Controllers
             }
         }
 
-        private static string FormatLevel(int level)
+        private string FormatLevel(int level)
         {
-            return "Уровень " + level;
+            return _settings.FormatLevel(level);
         }
     }
 }

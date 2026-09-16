@@ -3,12 +3,12 @@ using UnityEngine;
 
 namespace RunRich3D.Services
 {
-    internal sealed class PrefabPool<T> : ComponentPool<T> where T : Component
+    public sealed class PrefabPool<T> : ComponentPool<T> where T : Component
     {
         private readonly GameObject _prefab;
         private readonly Action<T> _onCreated;
 
-        internal PrefabPool(Transform parent, GameObject prefab, Action<T> onCreated)
+        public PrefabPool(Transform parent, GameObject prefab, Action<T> onCreated)
             : base(parent)
         {
             _prefab = prefab;

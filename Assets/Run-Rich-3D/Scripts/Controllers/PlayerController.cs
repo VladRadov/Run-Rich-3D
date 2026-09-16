@@ -2,23 +2,17 @@ using System;
 using UniRx;
 using UnityEngine;
 using RunRich3D.Models;
+using RunRich3D.Settings;
 using RunRich3D.Views;
 
 namespace RunRich3D.Controllers
 {
-    internal sealed class PlayerController : IDisposable
+    public sealed class PlayerController : IDisposable
     {
         private readonly PlayerModel _model;
         private readonly PlayerView _view;
         private readonly InputModel _input;
-        private readonly float _pathWidth;
-        private readonly float _sensitivity;
-        private readonly float _forwardSpeed;
-        private readonly float _offPathSlack;
-        private readonly float _maxSteerYaw;
-        private readonly float _steerYawPerSpeed;
-        private readonly float _steerYawSmooth;
-        private readonly float _lateralSmoothTime;
+        private readonly PlayerSettings _settings;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
         private PathBend _path;
 
@@ -30,33 +24,19 @@ namespace RunRich3D.Controllers
         private float _steerYaw;
         private bool _hasLastLateral;
 
-        internal PlayerController(
+        public PlayerController(
             PlayerModel model,
             PlayerView view,
             InputModel input,
-            float pathWidth,
-            float sensitivity,
-            float forwardSpeed,
-            float offPathSlack,
-            float maxSteerYaw,
-            float steerYawPerSpeed,
-            float steerYawSmooth,
-            float lateralSmoothTime)
+            PlayerSettings settings)
         {
             _model = model;
             _view = view;
             _input = input;
-            _pathWidth = pathWidth;
-            _sensitivity = sensitivity;
-            _forwardSpeed = forwardSpeed;
-            _offPathSlack = offPathSlack;
-            _maxSteerYaw = maxSteerYaw > 1f ? maxSteerYaw : 42f;
-            _steerYawPerSpeed = steerYawPerSpeed > 0.01f ? steerYawPerSpeed : 11f;
-            _steerYawSmooth = steerYawSmooth > 0.01f ? steerYawSmooth : 10f;
-            _lateralSmoothTime = lateralSmoothTime > 0.01f ? lateralSmoothTime : 0.14f;
+            _settings = settings;
         }
 
-        internal void Initialize()
+        public void Initialize()
         {
             _model.Wealth
                 .Subscribe(wealth => _view.SetStatus(
@@ -105,7 +85,7 @@ namespace RunRich3D.Controllers
                     if (_model.Phase.Value == GamePhase.Playing)
                     {
                         _model.SetForwardPosition(
-                            _model.ForwardPosition.Value + _forwardSpeed * Time.deltaTime);
+                            _model.ForwardPosition.Value + _settings.ForwardSpeed * Time.deltaTime);
                         MoveLaterally();
                     }
 
@@ -114,7 +94,7 @@ namespace RunRich3D.Controllers
                 .AddTo(_disposables);
         }
 
-        internal void BindPath(PathBend path)
+        public void BindPath(PathBend path)
         {
             _path = path;
             ApplyPose(_model.LateralOffset.Value, _model.ForwardPosition.Value);
@@ -145,7 +125,7 @@ namespace RunRich3D.Controllers
             if (_hasLastLateral && dt > 0.0001f && _model.Phase.Value == GamePhase.Playing)
             {
                 float speed = (lateral - _lastLateral) / dt;
-                targetYaw = Mathf.Clamp(speed * _steerYawPerSpeed, -_maxSteerYaw, _maxSteerYaw);
+                targetYaw = Mathf.Clamp(speed * _settings.SteerYawPerSpeed, -_settings.MaxSteerYaw, _settings.MaxSteerYaw);
             }
 
             _lastLateral = lateral;
@@ -156,9 +136,9 @@ namespace RunRich3D.Controllers
                 return _steerYaw;
             }
 
-            float blend = 1f - Mathf.Exp(-_steerYawSmooth * dt);
+            float blend = 1f - Mathf.Exp(-_settings.SteerYawSmooth * dt);
             _steerYaw = Mathf.Lerp(_steerYaw, targetYaw, blend);
-            if (Mathf.Abs(_steerYaw) < 0.05f && Mathf.Abs(targetYaw) < 0.05f)
+            if (Mathf.Abs(_steerYaw) < _settings.SteerIdleSnapDegrees && Mathf.Abs(targetYaw) < _settings.SteerIdleSnapDegrees)
             {
                 _steerYaw = 0f;
             }
@@ -186,7 +166,7 @@ namespace RunRich3D.Controllers
             }
 
             float normalizedDelta = (screenX - _dragOriginScreenX) / Screen.width;
-            float worldDelta = normalizedDelta * _pathWidth * _sensitivity;
+            float worldDelta = normalizedDelta * _settings.PathWidth * _settings.SteerSensitivity;
             float maxOffset = MaxLateralOffset();
             float desired = _dragOriginLateral + worldDelta;
             float clamped = Mathf.Clamp(desired, -maxOffset, maxOffset);
@@ -205,7 +185,7 @@ namespace RunRich3D.Controllers
                 current,
                 _targetLateral,
                 ref _lateralVelocity,
-                _lateralSmoothTime);
+                _settings.LateralSmoothTime);
             if (Mathf.Abs(next - _targetLateral) < 0.001f)
             {
                 next = _targetLateral;
@@ -218,9 +198,9 @@ namespace RunRich3D.Controllers
 
         private float MaxLateralOffset()
         {
-            float slack = _offPathSlack < 0f ? 0f : _offPathSlack;
-            float half = _pathWidth * 0.5f + slack;
-            return half > 0.1f ? half : 0.1f;
+            float slack = _settings.OffPathSlack < 0f ? 0f : _settings.OffPathSlack;
+            float half = _settings.PathWidth * 0.5f + slack;
+            return half > _settings.MinLateralLimit ? half : _settings.MinLateralLimit;
         }
     }
 }

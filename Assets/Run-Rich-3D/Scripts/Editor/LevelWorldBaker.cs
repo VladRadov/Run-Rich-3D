@@ -44,7 +44,7 @@ namespace RunRich3D.Editor
             Debug.Log("Run Rich 3D: static level baked into the scene.");
         }
 
-        internal static void BakeActiveScene()
+        public static void BakeActiveScene()
         {
             LevelService levelService = FindSceneComponent<LevelService>();
             if (levelService == null || levelService.LevelRoot == null)
@@ -77,7 +77,7 @@ namespace RunRich3D.Editor
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
-        internal static LevelWorldBuilder.Catalog CreateCatalog()
+        public static LevelWorldBuilder.Catalog CreateCatalog()
         {
             return new LevelWorldBuilder.Catalog(
                 null,

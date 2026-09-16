@@ -4,11 +4,11 @@ using RunRich3D.Views;
 
 namespace RunRich3D.Services
 {
-    internal sealed class LevelWorldBuilder
+    public sealed class LevelWorldBuilder
     {
-        internal readonly struct Catalog
+        public readonly struct Catalog
         {
-            internal Catalog(
+            public Catalog(
                 GameObject dollarPrefab,
                 GameObject bottlePrefab,
                 Mesh groundMesh,
@@ -66,45 +66,45 @@ namespace RunRich3D.Services
                 LabelFont = labelFont;
             }
 
-            internal GameObject DollarPrefab { get; }
-            internal GameObject BottlePrefab { get; }
-            internal Mesh GroundMesh { get; }
-            internal Mesh BoxMesh { get; }
-            internal Mesh FlagMesh { get; }
-            internal Mesh ChoiceDoorMesh { get; }
-            internal Mesh PartyMesh { get; }
-            internal Mesh StudyMesh { get; }
-            internal Mesh FinishBlueMesh { get; }
-            internal Mesh FinishGreenMesh { get; }
-            internal Mesh FinishOrangeMesh { get; }
-            internal Mesh FinishYellowMesh { get; }
-            internal Mesh DoorPoorMesh { get; }
-            internal Mesh DoorRichMesh { get; }
-            internal Mesh DoorMillionMesh { get; }
-            internal Mesh FinishPlaneMesh { get; }
-            internal Mesh FinishStarMesh { get; }
-            internal Material PathMaterial { get; }
-            internal Material MoneyMaterial { get; }
-            internal Material BottleMaterial { get; }
-            internal Material FlagMaterial { get; }
-            internal Material ChoiceMaterial { get; }
-            internal Material FinishMaterial { get; }
-            internal Material GoodDoorMaterial { get; }
-            internal Material PoorDoorMaterial { get; }
-            internal Material PropsMaterial { get; }
-            internal Font LabelFont { get; }
+            public GameObject DollarPrefab { get; }
+            public GameObject BottlePrefab { get; }
+            public Mesh GroundMesh { get; }
+            public Mesh BoxMesh { get; }
+            public Mesh FlagMesh { get; }
+            public Mesh ChoiceDoorMesh { get; }
+            public Mesh PartyMesh { get; }
+            public Mesh StudyMesh { get; }
+            public Mesh FinishBlueMesh { get; }
+            public Mesh FinishGreenMesh { get; }
+            public Mesh FinishOrangeMesh { get; }
+            public Mesh FinishYellowMesh { get; }
+            public Mesh DoorPoorMesh { get; }
+            public Mesh DoorRichMesh { get; }
+            public Mesh DoorMillionMesh { get; }
+            public Mesh FinishPlaneMesh { get; }
+            public Mesh FinishStarMesh { get; }
+            public Material PathMaterial { get; }
+            public Material MoneyMaterial { get; }
+            public Material BottleMaterial { get; }
+            public Material FlagMaterial { get; }
+            public Material ChoiceMaterial { get; }
+            public Material FinishMaterial { get; }
+            public Material GoodDoorMaterial { get; }
+            public Material PoorDoorMaterial { get; }
+            public Material PropsMaterial { get; }
+            public Font LabelFont { get; }
         }
 
-        internal readonly struct BuiltLevel
+        public readonly struct BuiltLevel
         {
-            internal BuiltLevel(LevelPieceView[] pickups, FlagView[] flags)
+            public BuiltLevel(LevelPieceView[] pickups, FlagView[] flags)
             {
                 Pickups = pickups;
                 Flags = flags;
             }
 
-            internal LevelPieceView[] Pickups { get; }
-            internal FlagView[] Flags { get; }
+            public LevelPieceView[] Pickups { get; }
+            public FlagView[] Flags { get; }
         }
 
         private readonly Transform _root;
@@ -125,12 +125,12 @@ namespace RunRich3D.Services
         private const string SignChildName = "Sign";
         private static readonly Quaternion FaceRunner = Quaternion.identity;
 
-        internal LevelWorldBuilder(Transform root, Catalog catalog, LevelWorldTuning tuning, PathBend path)
+        public LevelWorldBuilder(Transform root, Catalog catalog, LevelWorldTuning tuning, PathBend path)
             : this(root, catalog, tuning, path, null, null)
         {
         }
 
-        internal LevelWorldBuilder(
+        public LevelWorldBuilder(
             Transform root,
             Catalog catalog,
             LevelWorldTuning tuning,
@@ -140,7 +140,7 @@ namespace RunRich3D.Services
         {
         }
 
-        internal LevelWorldBuilder(
+        public LevelWorldBuilder(
             Transform root,
             Catalog catalog,
             LevelWorldTuning tuning,
@@ -156,7 +156,7 @@ namespace RunRich3D.Services
             _plusSignTexture = plusSignTexture;
         }
 
-        internal BuiltLevel BuildRuntimePickups(LevelLayout layout)
+        public BuiltLevel BuildRuntimePickups(LevelLayout layout)
         {
             if (_pickupPools != null)
             {
@@ -170,7 +170,7 @@ namespace RunRich3D.Services
             return new BuiltLevel(CreatePickupViews(_root, layout.Pickups), new FlagView[0]);
         }
 
-        internal FlagView[] BakeStatic(LevelLayout layout)
+        public FlagView[] BakeStatic(LevelLayout layout)
         {
             BuildPath(layout);
             BuildObstacles(layout.Obstacles);
@@ -917,7 +917,8 @@ namespace RunRich3D.Services
 
         private Material CreateStandard(Color tint)
         {
-            Shader shader = Shader.Find("Standard");
+            string shaderName = string.IsNullOrEmpty(_tuning.StandardShaderName) ? "Standard" : _tuning.StandardShaderName;
+            Shader shader = Shader.Find(shaderName);
             var material = new Material(shader);
             material.color = tint;
             material.SetFloat("_Glossiness", _tuning.PickupGlossiness);
@@ -1086,17 +1087,20 @@ namespace RunRich3D.Services
             return _minusSignMaterial;
         }
 
-        private static Material CreateUnlitTexture(Texture2D texture)
+        private Material CreateUnlitTexture(Texture2D texture)
         {
-            Shader shader = Shader.Find("RunRich3D/PickupSign");
+            string signName = string.IsNullOrEmpty(_tuning.PickupSignShaderName) ? "RunRich3D/PickupSign" : _tuning.PickupSignShaderName;
+            Shader shader = Shader.Find(signName);
             if (shader == null)
             {
-                shader = Shader.Find("Unlit/Texture");
+                string unlitName = string.IsNullOrEmpty(_tuning.UnlitTextureShaderName) ? "Unlit/Texture" : _tuning.UnlitTextureShaderName;
+                shader = Shader.Find(unlitName);
             }
 
             if (shader == null)
             {
-                shader = Shader.Find("Standard");
+                string standardName = string.IsNullOrEmpty(_tuning.StandardShaderName) ? "Standard" : _tuning.StandardShaderName;
+                shader = Shader.Find(standardName);
             }
 
             var material = new Material(shader);
@@ -1109,7 +1113,7 @@ namespace RunRich3D.Services
 
             if (material.HasProperty("_Cutoff"))
             {
-                material.SetFloat("_Cutoff", 0.12f);
+                material.SetFloat("_Cutoff", _tuning.PickupSignCutoff);
             }
 
             if (material.HasProperty("_EmissionColor"))

@@ -3,9 +3,15 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
+using Zenject;
 using RunRich3D.Controllers;
+using RunRich3D.Installers;
 using RunRich3D.Services;
+using RunRich3D.Settings;
 using RunRich3D.Views;
+using AudioSettings = RunRich3D.Settings.AudioSettings;
+using LightingSettings = RunRich3D.Settings.LightingSettings;
+using PlayerSettings = RunRich3D.Settings.PlayerSettings;
 
 namespace RunRich3D.Editor
 {
@@ -39,7 +45,13 @@ namespace RunRich3D.Editor
         private const string WinPlayTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/watch 2.png";
         private const string LoseBannerTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Banderole_Level 1.png";
         private const string LoseButtonTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/9grid_red.png";
-        private const string AudioClipRoot = "Assets/Run-Rich-3D/OtherAssets/Sounds/AudioClip/";
+        private const string PlayerSettingsPath = "Assets/Run-Rich-3D/Settings/PlayerSettings.asset";
+        private const string CameraSettingsPath = "Assets/Run-Rich-3D/Settings/CameraSettings.asset";
+        private const string AudioSettingsPath = "Assets/Run-Rich-3D/Settings/AudioSettings.asset";
+        private const string LightingSettingsPath = "Assets/Run-Rich-3D/Settings/LightingSettings.asset";
+        private const string InputSettingsPath = "Assets/Run-Rich-3D/Settings/InputSettings.asset";
+        private const string HudSettingsPath = "Assets/Run-Rich-3D/Settings/HudSettings.asset";
+        private const string LevelSettingsPath = "Assets/Run-Rich-3D/Settings/LevelSettings.asset";
         private const string PlusTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Plus.png";
         private const string DollarPrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bills.fbx";
         private const string BottlePrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bottle.fbx";
@@ -128,9 +140,19 @@ namespace RunRich3D.Editor
 
             RenderSettings.skybox = skybox;
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.62f, 0.86f, 1f);
-            RenderSettings.ambientEquatorColor = new Color(0.48f, 0.78f, 0.95f);
-            RenderSettings.ambientGroundColor = new Color(0.78f, 0.78f, 0.72f);
+            var lightingSettings = AssetDatabase.LoadAssetAtPath<LightingSettings>(LightingSettingsPath);
+            if (lightingSettings != null)
+            {
+                RenderSettings.ambientSkyColor = lightingSettings.AmbientSky;
+                RenderSettings.ambientEquatorColor = lightingSettings.AmbientEquator;
+                RenderSettings.ambientGroundColor = lightingSettings.AmbientGround;
+            }
+            else
+            {
+                RenderSettings.ambientSkyColor = new Color(0.62f, 0.86f, 1f);
+                RenderSettings.ambientEquatorColor = new Color(0.48f, 0.78f, 0.95f);
+                RenderSettings.ambientGroundColor = new Color(0.78f, 0.78f, 0.72f);
+            }
             RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
             DynamicGI.UpdateEnvironment();
 
@@ -197,7 +219,6 @@ namespace RunRich3D.Editor
 
             var lightingSo = new SerializedObject(lightingService);
             lightingSo.FindProperty("_sun").objectReferenceValue = directional;
-            lightingSo.FindProperty("_skybox").objectReferenceValue = skybox;
             lightingSo.ApplyModifiedPropertiesWithoutUndo();
 
             var inputSo = new SerializedObject(inputService);
@@ -207,93 +228,67 @@ namespace RunRich3D.Editor
             var playerSo = new SerializedObject(playerService);
             playerSo.FindProperty("_playerEntity").objectReferenceValue = player;
             playerSo.FindProperty("_visualRoot").objectReferenceValue = visual;
-            playerSo.FindProperty("_inputService").objectReferenceValue = inputService;
             playerSo.FindProperty("_labelFont").objectReferenceValue = hudFont;
             playerSo.FindProperty("_animatorController").objectReferenceValue = playerAnimator;
             playerSo.ApplyModifiedPropertiesWithoutUndo();
 
             var cameraSo = new SerializedObject(cameraService);
             cameraSo.FindProperty("_camera").objectReferenceValue = camera;
-            cameraSo.FindProperty("_playerService").objectReferenceValue = playerService;
             cameraSo.ApplyModifiedPropertiesWithoutUndo();
 
-            var loopSo = new SerializedObject(gameLoopService);
-            loopSo.FindProperty("_playerService").objectReferenceValue = playerService;
-            loopSo.FindProperty("_inputService").objectReferenceValue = inputService;
-            loopSo.FindProperty("_levelService").objectReferenceValue = levelService;
-            loopSo.FindProperty("_font").objectReferenceValue = hudFont;
-            loopSo.FindProperty("_buttonTexture").objectReferenceValue = buttonTex;
-            loopSo.FindProperty("_retryTexture").objectReferenceValue = retryTex;
-            loopSo.FindProperty("_dollarTexture").objectReferenceValue = dollarTex;
-            loopSo.FindProperty("_billsTexture").objectReferenceValue = billsTex;
-            loopSo.FindProperty("_arrowTexture").objectReferenceValue = arrowTex;
-            loopSo.FindProperty("_fingerTexture").objectReferenceValue = fingerTex;
-            loopSo.FindProperty("_settingsTexture").objectReferenceValue = settingsTex;
-            loopSo.FindProperty("_noAdsTexture").objectReferenceValue = noAdsTex;
-            loopSo.FindProperty("_shopSkinTexture").objectReferenceValue = shopSkinTex;
-            loopSo.FindProperty("_pickupsTexture").objectReferenceValue = pickupsTex;
-            loopSo.FindProperty("_parquetTexture").objectReferenceValue = parquetTex;
-            loopSo.FindProperty("_winBannerTexture").objectReferenceValue = winBannerTex;
-            loopSo.FindProperty("_winGaugeTexture").objectReferenceValue = winGaugeTex;
-            loopSo.FindProperty("_winNeedleTexture").objectReferenceValue = winNeedleTex;
-            loopSo.FindProperty("_winOrangeButtonTexture").objectReferenceValue = winOrangeTex;
-            loopSo.FindProperty("_winBlueButtonTexture").objectReferenceValue = winBlueTex;
-            loopSo.FindProperty("_winPlayTexture").objectReferenceValue = winPlayTex;
-            loopSo.FindProperty("_loseBannerTexture").objectReferenceValue = loseBannerTex;
-            loopSo.FindProperty("_loseButtonTexture").objectReferenceValue = loseButtonTex;
-            loopSo.ApplyModifiedPropertiesWithoutUndo();
-
             var pickupEffectSo = new SerializedObject(pickupEffectService);
-            pickupEffectSo.FindProperty("_playerService").objectReferenceValue = playerService;
-            pickupEffectSo.FindProperty("_levelService").objectReferenceValue = levelService;
             pickupEffectSo.FindProperty("_dollarsEffectPrefab").objectReferenceValue = dollarsEffect;
             pickupEffectSo.FindProperty("_bottleEffectPrefab").objectReferenceValue = bottleEffect;
             pickupEffectSo.ApplyModifiedPropertiesWithoutUndo();
 
-            var audioSo = new SerializedObject(audioService);
-            audioSo.FindProperty("_playerService").objectReferenceValue = playerService;
-            audioSo.FindProperty("_levelService").objectReferenceValue = levelService;
-            AssignAudioClips(audioSo.FindProperty("_footsteps"),
-                LoadAudioClip("SFX_Footstep_1.ogg"),
-                LoadAudioClip("SFX_Footstep_2.ogg"),
-                LoadAudioClip("SFX_Footstep_3.ogg"),
-                LoadAudioClip("SFX_Footstep_4.ogg"),
-                LoadAudioClip("SFX_Footstep_5.ogg"));
-            audioSo.FindProperty("_dollar").objectReferenceValue = LoadAudioClip("collect_coin.ogg");
-            audioSo.FindProperty("_bottle").objectReferenceValue = LoadAudioClip("RemoveMoney.ogg");
-            audioSo.FindProperty("_flag").objectReferenceValue = LoadAudioClip("photograph.ogg");
-            audioSo.FindProperty("_status").objectReferenceValue = LoadAudioClip("shortcutrun_sfx_joueur_boost_pont_V3.ogg");
-            audioSo.FindProperty("_door").objectReferenceValue = LoadAudioClip("shortcutrun_sfx_envir_boost_champignon_01.ogg");
-            audioSo.FindProperty("_win").objectReferenceValue = LoadAudioClip("shortcutrun_sfx_jingle_victory.ogg");
-            audioSo.FindProperty("_lose").objectReferenceValue = LoadAudioClip("App Error.ogg");
-            audioSo.FindProperty("_stepInterval").floatValue = 0.52f;
-            audioSo.ApplyModifiedPropertiesWithoutUndo();
-
             var levelSo = new SerializedObject(levelService);
             levelSo.FindProperty("_levelRoot").objectReferenceValue = levelRoot.transform;
-            levelSo.FindProperty("_playerService").objectReferenceValue = playerService;
             levelSo.FindProperty("_legacyPath").objectReferenceValue = path;
-            levelSo.FindProperty("_dollarPrefab").objectReferenceValue = dollarPrefab;
-            levelSo.FindProperty("_bottlePrefab").objectReferenceValue = bottlePrefab;
-            levelSo.FindProperty("_moneyMaterial").objectReferenceValue = paperBloc != null ? paperBloc : propsFlat;
-            levelSo.FindProperty("_bottleMaterial").objectReferenceValue = redMat != null ? redMat : (badDoorMat != null ? badDoorMat : propsFlatBad);
-            levelSo.FindProperty("_plusSignTexture").objectReferenceValue = plusTex;
+            levelSo.FindProperty("_settings").objectReferenceValue = AssetDatabase.LoadAssetAtPath<LevelSettings>(LevelSettingsPath);
             levelSo.ApplyModifiedPropertiesWithoutUndo();
 
             DestroyComponent<GameBootstrap>(bootstrapRoot);
-            var bootstrap = bootstrapRoot.AddComponent<GameBootstrap>();
-            var bootstrapSo = new SerializedObject(bootstrap);
-            bootstrapSo.FindProperty("_lightingService").objectReferenceValue = lightingService;
-            bootstrapSo.FindProperty("_inputService").objectReferenceValue = inputService;
-            bootstrapSo.FindProperty("_playerService").objectReferenceValue = playerService;
-            bootstrapSo.FindProperty("_cameraService").objectReferenceValue = cameraService;
-            bootstrapSo.FindProperty("_levelService").objectReferenceValue = levelService;
-            bootstrapSo.FindProperty("_pickupEffectService").objectReferenceValue = pickupEffectService;
-            bootstrapSo.FindProperty("_audioService").objectReferenceValue = audioService;
-            bootstrapSo.FindProperty("_gameLoopService").objectReferenceValue = gameLoopService;
-            bootstrapSo.ApplyModifiedPropertiesWithoutUndo();
+            DestroyComponent<SceneContext>(bootstrapRoot);
+            DestroyComponent<GameInstaller>(bootstrapRoot);
+            bootstrapRoot.AddComponent<GameBootstrap>();
+            var sceneContext = bootstrapRoot.AddComponent<SceneContext>();
+            var installer = bootstrapRoot.AddComponent<GameInstaller>();
+            var installerSo = new SerializedObject(installer);
+            installerSo.FindProperty("_playerSettings").objectReferenceValue = AssetDatabase.LoadAssetAtPath<PlayerSettings>(PlayerSettingsPath);
+            installerSo.FindProperty("_cameraSettings").objectReferenceValue = AssetDatabase.LoadAssetAtPath<CameraSettings>(CameraSettingsPath);
+            installerSo.FindProperty("_audioSettings").objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioSettings>(AudioSettingsPath);
+            installerSo.FindProperty("_lightingSettings").objectReferenceValue = AssetDatabase.LoadAssetAtPath<LightingSettings>(LightingSettingsPath);
+            installerSo.FindProperty("_inputSettings").objectReferenceValue = AssetDatabase.LoadAssetAtPath<InputSettings>(InputSettingsPath);
+            installerSo.FindProperty("_hudSettings").objectReferenceValue = AssetDatabase.LoadAssetAtPath<HudSettings>(HudSettingsPath);
+            installerSo.FindProperty("_levelSettings").objectReferenceValue = AssetDatabase.LoadAssetAtPath<LevelSettings>(LevelSettingsPath);
+            installerSo.FindProperty("_lightingService").objectReferenceValue = lightingService;
+            installerSo.FindProperty("_inputService").objectReferenceValue = inputService;
+            installerSo.FindProperty("_playerService").objectReferenceValue = playerService;
+            installerSo.FindProperty("_cameraService").objectReferenceValue = cameraService;
+            installerSo.FindProperty("_levelService").objectReferenceValue = levelService;
+            installerSo.FindProperty("_pickupEffectService").objectReferenceValue = pickupEffectService;
+            installerSo.FindProperty("_audioService").objectReferenceValue = audioService;
+            installerSo.FindProperty("_gameLoopService").objectReferenceValue = gameLoopService;
+            installerSo.ApplyModifiedPropertiesWithoutUndo();
+
+            var contextSo = new SerializedObject(sceneContext);
+            SerializedProperty installers = contextSo.FindProperty("_monoInstallers");
+            installers.arraySize = 1;
+            installers.GetArrayElementAtIndex(0).objectReferenceValue = installer;
+            contextSo.FindProperty("_autoRun").boolValue = true;
+            contextSo.ApplyModifiedPropertiesWithoutUndo();
 
             LevelWorldBaker.BakeActiveScene();
+            Transform bakedFinish = levelRoot.transform.Find("Static") != null
+                ? levelRoot.transform.Find("Static").Find("Finish")
+                : null;
+            var levelAfterBake = new SerializedObject(levelService);
+            if (bakedFinish != null)
+            {
+                levelAfterBake.FindProperty("_finishRoot").objectReferenceValue = bakedFinish;
+            }
+
+            levelAfterBake.ApplyModifiedPropertiesWithoutUndo();
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
@@ -338,25 +333,6 @@ namespace RunRich3D.Editor
             }
 
             return service;
-        }
-
-        private static AudioClip LoadAudioClip(string fileName)
-        {
-            return AssetDatabase.LoadAssetAtPath<AudioClip>(AudioClipRoot + fileName);
-        }
-
-        private static void AssignAudioClips(SerializedProperty property, params AudioClip[] clips)
-        {
-            if (property == null)
-            {
-                return;
-            }
-
-            property.arraySize = clips.Length;
-            for (int i = 0; i < clips.Length; i++)
-            {
-                property.GetArrayElementAtIndex(i).objectReferenceValue = clips[i];
-            }
         }
 
         private static Camera EnsureCamera(Transform gameRoot)

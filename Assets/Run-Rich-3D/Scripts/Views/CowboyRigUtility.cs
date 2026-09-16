@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace RunRich3D.Views
 {
-    internal static class CowboyRigUtility
+    public static class CowboyRigUtility
     {
         // Ordered bone-name hashes baked into all Cowboy_*.asset meshes.
         private static readonly int[] CowboyBoneHashes =
@@ -88,7 +88,7 @@ namespace RunRich3D.Views
             unchecked((int)4064681957u)
         };
 
-        internal static SkinnedMeshRenderer FindSourceSkin(Transform rigRoot)
+        public static SkinnedMeshRenderer FindSourceSkin(Transform rigRoot)
         {
             if (rigRoot == null)
             {
@@ -114,7 +114,7 @@ namespace RunRich3D.Views
             return best;
         }
 
-        internal static Transform[] CaptureSkeletonBones(Transform rigRoot)
+        public static Transform[] CaptureSkeletonBones(Transform rigRoot)
         {
             SkinnedMeshRenderer source = FindSourceSkin(rigRoot);
             if (source != null && source.bones != null && source.bones.Length > 0)
@@ -133,7 +133,7 @@ namespace RunRich3D.Views
             return bones.Count > 0 ? bones.ToArray() : null;
         }
 
-        internal static Dictionary<int, Transform> BuildBoneLookup(Transform rigRoot)
+        public static Dictionary<int, Transform> BuildBoneLookup(Transform rigRoot)
         {
             var map = new Dictionary<int, Transform>(160);
             if (rigRoot == null)
@@ -150,7 +150,7 @@ namespace RunRich3D.Views
             return map;
         }
 
-        internal static Transform[] MapMeshBones(
+        public static Transform[] MapMeshBones(
             Mesh mesh,
             Dictionary<int, Transform> boneLookup,
             Transform[] skeletonBones,
@@ -193,7 +193,7 @@ namespace RunRich3D.Views
             return null;
         }
 
-        internal static Transform ResolveRootBone(Transform rigRoot, Transform[] skeletonBones)
+        public static Transform ResolveRootBone(Transform rigRoot, Transform[] skeletonBones)
         {
             Transform hips = FindNamed(rigRoot, "mixamorig:Hips");
             if (hips != null)
@@ -221,12 +221,12 @@ namespace RunRich3D.Views
             return rigRoot;
         }
 
-        internal static void HideEmbeddedMeshes(Transform rigRoot)
+        public static void HideEmbeddedMeshes(Transform rigRoot)
         {
             HideEmbeddedMeshesExcept(rigRoot, null);
         }
 
-        internal static void HideEmbeddedMeshesExcept(Transform rigRoot, SkinnedMeshRenderer keep)
+        public static void HideEmbeddedMeshesExcept(Transform rigRoot, SkinnedMeshRenderer keep)
         {
             if (rigRoot == null)
             {
@@ -248,7 +248,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal static void FitRigToHeight(Transform scaleRoot, Renderer sample, float targetHeight)
+        public static void FitRigToHeight(Transform scaleRoot, Renderer sample, float targetHeight)
         {
             if (scaleRoot == null || sample == null || targetHeight < 0.01f)
             {

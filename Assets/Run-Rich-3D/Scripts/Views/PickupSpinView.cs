@@ -8,7 +8,7 @@ namespace RunRich3D.Views
 
         private float _yaw;
 
-        internal void BindSpin(float degreesPerSecond)
+        public void BindSpin(float degreesPerSecond)
         {
             Bind();
             _degreesPerSecond = degreesPerSecond > 0.01f ? degreesPerSecond : 72f;

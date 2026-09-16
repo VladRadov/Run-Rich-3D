@@ -531,6 +531,8 @@ GameObject:
   m_Component:
   - component: {fileID: 184000032}
   - component: {fileID: 184000033}
+  - component: {fileID: 184000283}
+  - component: {fileID: 184000284}
   m_Layer: 0
   m_Name: 1. Bootstrap
   m_TagString: Untagged
@@ -565,6 +567,57 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f6a4b1d2e5c7f9a1b3d4e5f60718293, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &184000283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 184000031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 89715ad69b973a14899afa2c6730b30b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _scriptableObjectInstallers: []
+  _monoInstallers:
+  - {fileID: 184000284}
+  _installerPrefabs: []
+  _autoRun: 1
+  OnPreInstall:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPostInstall:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPreResolve:
+    m_PersistentCalls:
+      m_Calls: []
+  OnPostResolve:
+    m_PersistentCalls:
+      m_Calls: []
+  _parentNewObjectsUnderSceneContext: 0
+  _contractNames: []
+  _parentContractNames: []
+--- !u!114 &184000284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 184000031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b11c2d3e4f5061728394a5b6c7d8e027, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerSettings: {fileID: 11400000, guid: c11c2d3e4f5061728394a5b6c7d8e030, type: 2}
+  _cameraSettings: {fileID: 11400000, guid: c11c2d3e4f5061728394a5b6c7d8e031, type: 2}
+  _audioSettings: {fileID: 11400000, guid: c11c2d3e4f5061728394a5b6c7d8e032, type: 2}
+  _lightingSettings: {fileID: 11400000, guid: c11c2d3e4f5061728394a5b6c7d8e033, type: 2}
+  _inputSettings: {fileID: 11400000, guid: c11c2d3e4f5061728394a5b6c7d8e034, type: 2}
+  _hudSettings: {fileID: 11400000, guid: c11c2d3e4f5061728394a5b6c7d8e035, type: 2}
+  _levelSettings: {fileID: 11400000, guid: c11c2d3e4f5061728394a5b6c7d8e036, type: 2}
   _lightingService: {fileID: 184000123}
   _inputService: {fileID: 184000213}
   _playerService: {fileID: 184000133}
@@ -1087,8 +1140,9 @@ MonoBehaviour:
   - {fileID: 185010080}
   _gateView: {fileID: 185000053}
   _finishDoorsView: {fileID: 185000063}
-  _playerService: {fileID: 184000133}
   _legacyPath: {fileID: 184000001}
+  _finishRoot: {fileID: 185000062}
+  _settings: {fileID: 11400000, guid: c11c2d3e4f5061728394a5b6c7d8e036, type: 2}
   _dollarPrefab: {fileID: 919132149155446097, guid: cb15039ea4138534fb257b96a219e684, type: 3}
   _bottlePrefab: {fileID: 919132149155446097, guid: f6a1dfdcfc4157647b9393af24935ca5, type: 3}
   _moneyMaterial: {fileID: 2100000, guid: b01d8fb93fc7d154998ed6e4211c055b, type: 2}

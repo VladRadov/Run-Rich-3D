@@ -3,28 +3,29 @@ using UniRx;
 using UnityEngine;
 using RunRich3D.Models;
 using RunRich3D.Views;
+using AudioSettings = RunRich3D.Settings.AudioSettings;
 
 namespace RunRich3D.Controllers
 {
-    internal sealed class AudioController : IDisposable
+    public sealed class AudioController : IDisposable
     {
         private readonly AudioView _view;
         private readonly PlayerModel _player;
         private readonly ILevelEvents _events;
-        private readonly float _stepInterval;
+        private readonly AudioSettings _settings;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
         private float _stepElapsed;
         private bool _skipNextStatus;
 
-        internal AudioController(AudioView view, PlayerModel player, ILevelEvents events, float stepInterval)
+        public AudioController(AudioView view, PlayerModel player, ILevelEvents events, AudioSettings settings)
         {
             _view = view;
             _player = player;
             _events = events;
-            _stepInterval = stepInterval > 0.05f ? stepInterval : 0.52f;
+            _settings = settings;
         }
 
-        internal void Initialize()
+        public void Initialize()
         {
             if (_view == null)
             {
@@ -105,7 +106,7 @@ namespace RunRich3D.Controllers
             }
 
             _stepElapsed += Time.deltaTime;
-            if (_stepElapsed < _stepInterval)
+            if (_stepElapsed < _settings.StepInterval)
             {
                 return;
             }

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace RunRich3D.Editor
 {
     [InitializeOnLoad]
-    internal static class PlayModeInspectorGuard
+    public static class PlayModeInspectorGuard
     {
         private const string SafeAssetPath = "Assets/Run-Rich-3D";
 

@@ -3,13 +3,13 @@ using RunRich3D.Views;
 
 namespace RunRich3D.Services
 {
-    internal sealed class PickupToastPool : ComponentPool<PickupToastView>
+    public sealed class PickupToastPool : ComponentPool<PickupToastView>
     {
         private readonly Font _font;
         private readonly Texture2D _dollarTexture;
         private readonly Vector2 _restPosition;
 
-        internal PickupToastPool(Transform parent, Font font, Texture2D dollarTexture, Vector2 restPosition)
+        public PickupToastPool(Transform parent, Font font, Texture2D dollarTexture, Vector2 restPosition)
             : base(parent)
         {
             _font = font;

@@ -1,8 +1,8 @@
 namespace RunRich3D.Models
 {
-    internal sealed class WealthRules
+    public sealed class WealthRules
     {
-        internal WealthRules(
+        public WealthRules(
             int comfortableThreshold,
             int richThreshold,
             int maxDisplay,
@@ -22,16 +22,16 @@ namespace RunRich3D.Models
             BlingOutfitWealth = ClampMin(blingOutfitWealth, BusinessOutfitWealth);
         }
 
-        internal int ComfortableThreshold { get; }
-        internal int RichThreshold { get; }
-        internal int MaxDisplay { get; }
-        internal int MiddleOutfitWealth { get; }
-        internal int CasualOutfitWealth { get; }
-        internal int CocktailOutfitWealth { get; }
-        internal int BusinessOutfitWealth { get; }
-        internal int BlingOutfitWealth { get; }
+        public int ComfortableThreshold { get; }
+        public int RichThreshold { get; }
+        public int MaxDisplay { get; }
+        public int MiddleOutfitWealth { get; }
+        public int CasualOutfitWealth { get; }
+        public int CocktailOutfitWealth { get; }
+        public int BusinessOutfitWealth { get; }
+        public int BlingOutfitWealth { get; }
 
-        internal WealthTier TierFrom(int wealth)
+        public WealthTier TierFrom(int wealth)
         {
             if (wealth >= RichThreshold)
             {
@@ -46,7 +46,7 @@ namespace RunRich3D.Models
             return WealthTier.Poor;
         }
 
-        internal int OutfitFrom(int wealth)
+        public int OutfitFrom(int wealth)
         {
             if (wealth >= BlingOutfitWealth)
             {
@@ -76,7 +76,7 @@ namespace RunRich3D.Models
             return PlayerOutfits.Poor;
         }
 
-        internal float Normalized(int wealth)
+        public float Normalized(int wealth)
         {
             if (wealth <= 0)
             {

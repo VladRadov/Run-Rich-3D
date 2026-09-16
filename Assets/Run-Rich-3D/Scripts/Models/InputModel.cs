@@ -3,13 +3,13 @@ using UniRx;
 
 namespace RunRich3D.Models
 {
-    internal sealed class InputModel
+    public sealed class InputModel
     {
-        internal IReadOnlyReactiveProperty<bool> IsHeld => _isHeld;
-        internal IReadOnlyReactiveProperty<float> PointerScreenX => _pointerScreenX;
-        internal IObservable<float> Pressed => _pressed;
-        internal IObservable<float> Dragged => _dragged;
-        internal IObservable<Unit> Released => _released;
+        public IReadOnlyReactiveProperty<bool> IsHeld => _isHeld;
+        public IReadOnlyReactiveProperty<float> PointerScreenX => _pointerScreenX;
+        public IObservable<float> Pressed => _pressed;
+        public IObservable<float> Dragged => _dragged;
+        public IObservable<Unit> Released => _released;
 
         private readonly BoolReactiveProperty _isHeld = new BoolReactiveProperty(false);
         private readonly FloatReactiveProperty _pointerScreenX = new FloatReactiveProperty(0f);
@@ -17,14 +17,14 @@ namespace RunRich3D.Models
         private readonly Subject<float> _dragged = new Subject<float>();
         private readonly Subject<Unit> _released = new Subject<Unit>();
 
-        internal void Begin(float screenX)
+        public void Begin(float screenX)
         {
             _pointerScreenX.Value = screenX;
             _isHeld.Value = true;
             _pressed.OnNext(screenX);
         }
 
-        internal void Move(float screenX)
+        public void Move(float screenX)
         {
             if (!_isHeld.Value)
             {
@@ -35,7 +35,7 @@ namespace RunRich3D.Models
             _dragged.OnNext(screenX);
         }
 
-        internal void End()
+        public void End()
         {
             if (!_isHeld.Value)
             {

@@ -82,5 +82,11 @@ namespace RunRich3D.Services
         [Header("Labels")]
         public float LabelCharacterSize = 0.06f;
         public int LabelFontSize = 64;
+
+        [Header("Shaders")]
+        public string StandardShaderName = "Standard";
+        public string PickupSignShaderName = "RunRich3D/PickupSign";
+        public string UnlitTextureShaderName = "Unlit/Texture";
+        public float PickupSignCutoff = 0.12f;
     }
 }

@@ -1,101 +1,69 @@
 using UnityEngine;
+using Zenject;
 using RunRich3D.Controllers;
 using RunRich3D.Models;
+using RunRich3D.Settings;
 using RunRich3D.Views;
 
 namespace RunRich3D.Services
 {
     public sealed class GameLoopService : MonoBehaviour, IGameService
     {
-        [Header("References")]
-        [SerializeField] private PlayerService _playerService;
-        [SerializeField] private InputService _inputService;
-        [SerializeField] private LevelService _levelService;
+        [SerializeField] private RectTransform _hudRoot;
 
-        [Header("HUD")]
-        [SerializeField] private Font _font;
-        [SerializeField] private Texture2D _buttonTexture;
-        [SerializeField] private Texture2D _retryTexture;
-        [SerializeField] private Texture2D _dollarTexture;
-        [SerializeField] private Texture2D _billsTexture;
-        [SerializeField] private Texture2D _arrowTexture;
-        [SerializeField] private Texture2D _fingerTexture;
-        [SerializeField] private Texture2D _settingsTexture;
-        [SerializeField] private Texture2D _noAdsTexture;
-        [SerializeField] private Texture2D _shopSkinTexture;
-        [SerializeField] private Texture2D _pickupsTexture;
-        [SerializeField] private Texture2D _parquetTexture;
-        [SerializeField] private Texture2D _winBannerTexture;
-        [SerializeField] private Texture2D _winGaugeTexture;
-        [SerializeField] private Texture2D _winNeedleTexture;
-        [SerializeField] private Texture2D _winOrangeButtonTexture;
-        [SerializeField] private Texture2D _winBlueButtonTexture;
-        [SerializeField] private Texture2D _winPlayTexture;
-        [SerializeField] private Texture2D _loseBannerTexture;
-        [SerializeField] private Texture2D _loseButtonTexture;
-
-        [Header("Lose")]
-        [SerializeField] private float _loseAbsX = 3.2f;
-
-        [Header("Pickup Toast")]
-        [SerializeField] private float _toastHoldSeconds = 1.1f;
-        [SerializeField] private float _toastFadeSeconds = 0.45f;
-        [SerializeField] private float _toastRisePixels = 90f;
-
+        private HudSettings _settings;
+        private PlayerService _playerService;
+        private InputService _inputService;
+        private LevelService _levelService;
         private GameLoopModel _model;
         private HudView _view;
         private GameLoopController _controller;
         private PickupToastPool _toastPool;
         private PickupToastController _toastController;
 
-        internal GameLoopModel Model => _model;
+        public GameLoopModel Model => _model;
+
+        [Inject]
+        public void Construct(
+            HudSettings settings,
+            PlayerService playerService,
+            InputService inputService,
+            LevelService levelService)
+        {
+            _settings = settings;
+            _playerService = playerService;
+            _inputService = inputService;
+            _levelService = levelService;
+        }
 
         public void Initialize()
         {
             GameObject hudRoot = EnsureHudRoot();
             _model = new GameLoopModel();
             _view = EntityViewFactory.CreateOn<HudView>(hudRoot);
-            _view.Bind(
-                _font,
-                _buttonTexture,
-                _retryTexture,
-                _billsTexture,
-                _arrowTexture,
-                _fingerTexture,
-                _settingsTexture,
-                _noAdsTexture,
-                _shopSkinTexture,
-                _pickupsTexture,
-                _parquetTexture);
-            _view.BindWinPanel(
-                _winBannerTexture,
-                _winGaugeTexture,
-                _winNeedleTexture,
-                _winOrangeButtonTexture,
-                _winBlueButtonTexture,
-                _winPlayTexture);
-            _view.BindLosePanel(_loseBannerTexture, _loseButtonTexture);
-
+            _view.Bind(_settings);
             _controller = new GameLoopController(
                 _model,
                 _playerService.Model,
                 _view,
                 _levelService.Events,
-                _loseAbsX);
+                _settings);
             _controller.Initialize();
 
             _toastPool = new PickupToastPool(
                 hudRoot.transform,
-                _font,
-                _dollarTexture,
-                new Vector2(0f, 80f));
+                _settings.Font,
+                _settings.DollarTexture,
+                _settings.ToastRestPosition);
             _toastController = new PickupToastController(
                 _toastPool,
                 _levelService.Events,
                 _playerService.Model,
-                _toastHoldSeconds,
-                _toastFadeSeconds,
-                _toastRisePixels);
+                _settings.ToastHoldSeconds,
+                _settings.ToastFadeSeconds,
+                _settings.ToastRisePixels,
+                _settings.ToastRestPosition,
+                _settings.ToastLossRestPosition);
             _toastController.Initialize();
         }
 
@@ -111,21 +79,19 @@ namespace RunRich3D.Services
 
         private GameObject EnsureHudRoot()
         {
-            Transform canvas = _inputService.CanvasRoot;
-            Transform existing = canvas.Find("GameHud");
-            if (existing != null)
+            if (_hudRoot != null)
             {
-                return existing.gameObject;
+                return _hudRoot.gameObject;
             }
 
             var hud = new GameObject("GameHud", typeof(RectTransform));
-            hud.transform.SetParent(canvas, false);
+            hud.transform.SetParent(_inputService.CanvasRoot, false);
             hud.transform.SetAsLastSibling();
-            var rect = (RectTransform)hud.transform;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            _hudRoot = (RectTransform)hud.transform;
+            _hudRoot.anchorMin = Vector2.zero;
+            _hudRoot.anchorMax = Vector2.one;
+            _hudRoot.offsetMin = Vector2.zero;
+            _hudRoot.offsetMax = Vector2.zero;
             return hud;
         }
     }

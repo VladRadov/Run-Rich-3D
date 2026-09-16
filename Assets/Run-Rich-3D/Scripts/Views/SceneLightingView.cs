@@ -15,8 +15,14 @@ namespace RunRich3D.Views
         [SerializeField] private Color _ambientGround = new Color(0.78f, 0.78f, 0.72f);
 
         private Light _cachedSun;
+        private string _panoramicShaderName = "Skybox/Panoramic";
 
-        internal void Setup(Light sun, Material skybox, Color ambientSky, Color ambientEquator, Color ambientGround)
+        public void Setup(Light sun, Material skybox, Color ambientSky, Color ambientEquator, Color ambientGround)
+        {
+            Setup(sun, skybox, ambientSky, ambientEquator, ambientGround, _panoramicShaderName);
+        }
+
+        public void Setup(Light sun, Material skybox, Color ambientSky, Color ambientEquator, Color ambientGround, string panoramicShaderName)
         {
             _sun = sun;
             _skybox = skybox;
@@ -24,10 +30,11 @@ namespace RunRich3D.Views
             _ambientEquator = ambientEquator;
             _ambientGround = ambientGround;
             _cachedSun = sun;
+            _panoramicShaderName = panoramicShaderName;
             Apply();
         }
 
-        internal void Apply()
+        public void Apply()
         {
             if (_skybox != null)
             {
@@ -49,14 +56,14 @@ namespace RunRich3D.Views
             }
         }
 
-        private static void EnsurePanoramic(Material skybox)
+        private void EnsurePanoramic(Material skybox)
         {
-            if (skybox.shader != null && skybox.shader.name == "Skybox/Panoramic")
+            if (skybox.shader != null && skybox.shader.name == _panoramicShaderName)
             {
                 return;
             }
 
-            Shader panoramic = Shader.Find("Skybox/Panoramic");
+            Shader panoramic = Shader.Find(_panoramicShaderName);
             if (panoramic != null)
             {
                 skybox.shader = panoramic;

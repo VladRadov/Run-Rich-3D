@@ -9,7 +9,7 @@ using RunRich3D.Views;
 
 namespace RunRich3D.Controllers
 {
-    internal sealed class PickupToastController : IDisposable
+    public sealed class PickupToastController : IDisposable
     {
         private readonly PickupToastPool _pool;
         private readonly ILevelEvents _levelEvents;
@@ -21,13 +21,15 @@ namespace RunRich3D.Controllers
         private readonly ToastChannel _loss;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
 
-        internal PickupToastController(
+        public PickupToastController(
             PickupToastPool pool,
             ILevelEvents levelEvents,
             PlayerModel player,
             float holdSeconds,
             float fadeSeconds,
-            float risePixels)
+            float risePixels,
+            Vector2 gainRestPosition,
+            Vector2 lossRestPosition)
         {
             _pool = pool;
             _levelEvents = levelEvents;
@@ -35,11 +37,11 @@ namespace RunRich3D.Controllers
             _holdSeconds = holdSeconds > 0.01f ? holdSeconds : 1.1f;
             _fadeSeconds = fadeSeconds > 0.01f ? fadeSeconds : 0.45f;
             _risePixels = risePixels > 0.01f ? risePixels : 90f;
-            _gain = new ToastChannel(new Vector2(0f, 80f));
-            _loss = new ToastChannel(new Vector2(0f, -20f));
+            _gain = new ToastChannel(gainRestPosition);
+            _loss = new ToastChannel(lossRestPosition);
         }
 
-        internal void Initialize()
+        public void Initialize()
         {
             _levelEvents.PickupCollected
                 .Subscribe(OnPickupCollected)
@@ -160,16 +162,16 @@ namespace RunRich3D.Controllers
 
         private sealed class ToastChannel
         {
-            internal ToastChannel(Vector2 restPosition)
+            public ToastChannel(Vector2 restPosition)
             {
                 RestPosition = restPosition;
                 Model = new PickupToastModel();
             }
 
-            internal Vector2 RestPosition { get; }
-            internal PickupToastModel Model { get; }
-            internal PickupToastView View { get; set; }
-            internal CancellationTokenSource HideCts { get; set; }
+            public Vector2 RestPosition { get; }
+            public PickupToastModel Model { get; }
+            public PickupToastView View { get; set; }
+            public CancellationTokenSource HideCts { get; set; }
         }
     }
 }

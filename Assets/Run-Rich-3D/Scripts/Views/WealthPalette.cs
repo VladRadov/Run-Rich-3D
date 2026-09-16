@@ -3,9 +3,9 @@ using RunRich3D.Models;
 
 namespace RunRich3D.Views
 {
-    internal static class WealthPalette
+    public static class WealthPalette
     {
-        internal static Color Of(WealthTier tier)
+        public static Color Of(WealthTier tier)
         {
             switch (tier)
             {
@@ -18,7 +18,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal static Color BarOf(WealthTier tier)
+        public static Color BarOf(WealthTier tier)
         {
             switch (tier)
             {

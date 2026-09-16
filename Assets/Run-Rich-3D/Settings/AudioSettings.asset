@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b11c2d3e4f5061728394a5b6c7d8e022, type: 3}
+  m_Name: AudioSettings
+  m_EditorClassIdentifier: 
+  _footsteps:
+  - {fileID: 8300000, guid: 9636c978715544948a3e9e0f2ca04e56, type: 3}
+  - {fileID: 8300000, guid: 1cd1242be55090f418089caf9a79446e, type: 3}
+  - {fileID: 8300000, guid: 59d9e7c674e5c504e859e8e0c80791f5, type: 3}
+  - {fileID: 8300000, guid: 3cff20b95a8286e42a834b21ea4b3e8e, type: 3}
+  - {fileID: 8300000, guid: be3b92d85fb38224281b1da7121c5fc5, type: 3}
+  _dollar: {fileID: 8300000, guid: 5b0228f9a7676604ba180a02917d5fc9, type: 3}
+  _bottle: {fileID: 8300000, guid: a96aa4d656081324d81362717e16b797, type: 3}
+  _flag: {fileID: 8300000, guid: 3a99f0818467d4047be14be072ddeeed, type: 3}
+  _status: {fileID: 8300000, guid: de6ea32d83416bd408a221cac502b8fd, type: 3}
+  _door: {fileID: 8300000, guid: 623a9b1e85e162843a9ae8e1991d5d81, type: 3}
+  _win: {fileID: 8300000, guid: 9286b7d446808fb45b47e22aeaa2c701, type: 3}
+  _lose: {fileID: 8300000, guid: 98b117022e426eb40be2b5fbc65afa76, type: 3}
+  _stepInterval: 0.52
+  _minStepInterval: 0.05
+  _sfxVolume: 0.9
+  _footstepVolume: 0.55

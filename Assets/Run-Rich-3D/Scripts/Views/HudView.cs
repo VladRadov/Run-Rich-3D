@@ -2,6 +2,7 @@ using System;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
+using RunRich3D.Settings;
 
 namespace RunRich3D.Views
 {
@@ -11,6 +12,7 @@ namespace RunRich3D.Views
         private WinPanelView _winPanel;
         private LosePanelView _losePanel;
 
+        private HudSettings _settings;
         private Font _font;
         private Texture2D _buttonTexture;
         private Texture2D _retryTexture;
@@ -38,10 +40,35 @@ namespace RunRich3D.Views
         private int _coinsTarget;
         private float _coinsDisplayed;
 
-        internal IObservable<Unit> ActionClicked => _actionClicked;
-        internal IObservable<int> WinCollected => _winPanel != null ? _winPanel.Collected : Observable.Empty<int>();
+        public IObservable<Unit> ActionClicked => _actionClicked;
+        public IObservable<int> WinCollected => _winPanel != null ? _winPanel.Collected : Observable.Empty<int>();
 
-        internal void Bind(
+        public void Bind(HudSettings settings)
+        {
+            _settings = settings;
+            Bind(
+                settings.Font,
+                settings.ButtonTexture,
+                settings.RetryTexture,
+                settings.BillsTexture,
+                settings.ArrowTexture,
+                settings.FingerTexture,
+                settings.SettingsTexture,
+                settings.NoAdsTexture,
+                settings.ShopSkinTexture,
+                settings.PickupsTexture,
+                settings.ParquetTexture);
+            BindWinPanel(
+                settings.WinBannerTexture,
+                settings.WinGaugeTexture,
+                settings.WinNeedleTexture,
+                settings.WinOrangeButtonTexture,
+                settings.WinBlueButtonTexture,
+                settings.WinPlayTexture);
+            BindLosePanel(settings.LoseBannerTexture, settings.LoseButtonTexture);
+        }
+
+        public void Bind(
             Font font,
             Texture2D buttonTexture,
             Texture2D retryTexture,
@@ -68,7 +95,7 @@ namespace RunRich3D.Views
             EnsureBuilt();
         }
 
-        internal void BindWinPanel(
+        public void BindWinPanel(
             Texture2D bannerTexture,
             Texture2D gaugeTexture,
             Texture2D needleTexture,
@@ -80,6 +107,7 @@ namespace RunRich3D.Views
             if (_winPanel != null)
             {
                 _winPanel.Bind(
+                    _settings,
                     _font,
                     bannerTexture,
                     gaugeTexture,
@@ -91,7 +119,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void BindLosePanel(Texture2D bannerTexture, Texture2D buttonTexture)
+        public void BindLosePanel(Texture2D bannerTexture, Texture2D buttonTexture)
         {
             EnsureBuilt();
             if (_losePanel == null)
@@ -99,11 +127,11 @@ namespace RunRich3D.Views
                 return;
             }
 
-            _losePanel.Bind(_font, bannerTexture, buttonTexture);
+            _losePanel.Bind(_settings, _font, bannerTexture, buttonTexture);
             _losePanel.RetryClicked.Subscribe(_ => _actionClicked.OnNext(Unit.Default));
         }
 
-        internal void ShowRun(string levelText, int runScore)
+        public void ShowRun(string levelText, int runScore)
         {
             EnsureBuilt();
             _runRoot.gameObject.SetActive(true);
@@ -122,7 +150,7 @@ namespace RunRich3D.Views
             SnapRunScore(runScore);
         }
 
-        internal void ShowLose()
+        public void ShowLose()
         {
             EnsureBuilt();
             _runRoot.gameObject.SetActive(false);
@@ -132,14 +160,14 @@ namespace RunRich3D.Views
                 _winPanel.Hide();
             }
 
-            SetResultDimmer(0.18f);
+            SetResultDimmer(_settings != null ? _settings.ResultDimmerAlpha : 0.18f);
             if (_losePanel != null)
             {
                 _losePanel.Show();
             }
         }
 
-        internal void ShowWin(int levelNumber, int collectedReward)
+        public void ShowWin(int levelNumber, int collectedReward)
         {
             EnsureBuilt();
             _runRoot.gameObject.SetActive(false);
@@ -149,24 +177,24 @@ namespace RunRich3D.Views
                 _losePanel.Hide();
             }
 
-            SetResultDimmer(0.18f);
+            SetResultDimmer(_settings != null ? _settings.ResultDimmerAlpha : 0.18f);
             if (_winPanel != null)
             {
                 _winPanel.Show(levelNumber, collectedReward);
             }
         }
 
-        internal void SetRunScore(int score)
+        public void SetRunScore(int score)
         {
             _runScoreTarget = score < 0 ? 0 : score;
         }
 
-        internal void SetCoins(int coins)
+        public void SetCoins(int coins)
         {
             _coinsTarget = coins < 0 ? 0 : coins;
         }
 
-        internal void SetSwipeHintVisible(bool visible)
+        public void SetSwipeHintVisible(bool visible)
         {
             if (_swipeHint != null)
             {
@@ -174,7 +202,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void SetSideButtonsVisible(bool visible)
+        public void SetSideButtonsVisible(bool visible)
         {
             if (_sideButtons != null)
             {
@@ -182,7 +210,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void SetWorldProgressVisible(bool visible)
+        public void SetWorldProgressVisible(bool visible)
         {
             if (_worldProgress != null)
             {
@@ -190,7 +218,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void SetCenterStatsVisible(bool visible)
+        public void SetCenterStatsVisible(bool visible)
         {
             if (_levelLabel != null)
             {
@@ -203,7 +231,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void SetLevel(string levelText)
+        public void SetLevel(string levelText)
         {
             if (_levelLabel == null)
             {
@@ -226,7 +254,7 @@ namespace RunRich3D.Views
             ApplyCounterText(_runScoreLabel, _runScoreTarget);
         }
 
-        private static void TickCounter(ref float displayed, int target, Text label)
+        private void TickCounter(ref float displayed, int target, Text label)
         {
             if (label == null)
             {
@@ -234,14 +262,17 @@ namespace RunRich3D.Views
             }
 
             float gap = target - displayed;
-            if (Mathf.Abs(gap) < 0.05f)
+            float snapGap = _settings != null ? _settings.CounterSnapGap : 0.05f;
+            if (Mathf.Abs(gap) < snapGap)
             {
                 displayed = target;
                 ApplyCounterText(label, target);
                 return;
             }
 
-            float speed = Mathf.Max(36f, Mathf.Abs(gap) / 0.28f);
+            float catchUp = _settings != null ? _settings.CounterCatchUpSeconds : 0.28f;
+            float minSpeed = _settings != null ? _settings.CounterMinSpeed : 36f;
+            float speed = Mathf.Max(minSpeed, Mathf.Abs(gap) / catchUp);
             displayed = Mathf.MoveTowards(displayed, target, speed * Time.deltaTime);
             ApplyCounterText(label, Mathf.RoundToInt(displayed));
         }
@@ -329,23 +360,24 @@ namespace RunRich3D.Views
 
         private void BuildWorldProgress(RectTransform parent)
         {
-            const float width = 860f;
-            const float height = 156f;
-            const int nodeCount = 5;
-            const float iconSize = 84f;
-            const float nodeSize = 44f;
-            const float trackHeight = 18f;
+            float width = _settings != null ? _settings.WorldProgressSize.x : 860f;
+            float height = _settings != null ? _settings.WorldProgressSize.y : 156f;
+            int nodeCount = _settings != null ? _settings.WorldProgressNodeCount : 5;
+            float iconSize = _settings != null ? _settings.WorldProgressIconSize : 84f;
+            float nodeSize = _settings != null ? _settings.WorldProgressNodeSize : 44f;
+            float trackHeight = _settings != null ? _settings.WorldProgressTrackHeight : 18f;
+            float top = _settings != null ? _settings.WorldProgressTop : -92f;
 
             var bar = CreateChild("WorldProgress", parent);
             _worldProgress = bar.gameObject;
             bar.anchorMin = new Vector2(0.5f, 1f);
             bar.anchorMax = new Vector2(0.5f, 1f);
             bar.pivot = new Vector2(0.5f, 1f);
-            bar.anchoredPosition = new Vector2(0f, -92f);
+            bar.anchoredPosition = new Vector2(0f, top);
             bar.sizeDelta = new Vector2(width, height);
 
             var background = bar.gameObject.AddComponent<Image>();
-            background.sprite = CreateCapsuleSprite(860, 156);
+            background.sprite = CreateCapsuleSprite(Mathf.RoundToInt(width), Mathf.RoundToInt(height));
             background.type = Image.Type.Simple;
             background.preserveAspect = false;
             background.color = new Color(0.05f, 0.22f, 0.30f, 0.92f);
@@ -359,7 +391,7 @@ namespace RunRich3D.Views
             track.anchoredPosition = new Vector2(0f, trackY);
             track.sizeDelta = new Vector2(width - 52f, trackHeight);
             var trackImage = track.gameObject.AddComponent<Image>();
-            trackImage.sprite = CreateCapsuleSprite(808, 18);
+            trackImage.sprite = CreateCapsuleSprite(Mathf.RoundToInt(width - 52f), Mathf.RoundToInt(trackHeight));
             trackImage.color = Color.white;
             trackImage.raycastTarget = false;
 
@@ -419,7 +451,7 @@ namespace RunRich3D.Views
 
         private void CreateDestinationIcon(string name, RectTransform parent, Vector2 position, Vector2 pivot)
         {
-            const float size = 84f;
+            float size = _settings != null ? _settings.WorldProgressIconSize : 84f;
             var icon = CreateChild(name, parent);
             icon.anchorMin = pivot;
             icon.anchorMax = pivot;
@@ -428,7 +460,7 @@ namespace RunRich3D.Views
             icon.sizeDelta = new Vector2(size, size);
 
             var frame = icon.gameObject.AddComponent<Image>();
-            frame.sprite = CreateCapsuleSprite(84, 84);
+            frame.sprite = CreateCapsuleSprite(Mathf.RoundToInt(size), Mathf.RoundToInt(size));
             frame.color = Color.white;
             frame.raycastTarget = false;
 
@@ -439,7 +471,7 @@ namespace RunRich3D.Views
             maskRect.anchoredPosition = Vector2.zero;
             maskRect.sizeDelta = new Vector2(size - 8f, size - 8f);
             var maskImage = maskRect.gameObject.AddComponent<Image>();
-            maskImage.sprite = CreateCapsuleSprite(76, 76);
+            maskImage.sprite = CreateCapsuleSprite(Mathf.RoundToInt(size - 8f), Mathf.RoundToInt(size - 8f));
             maskImage.color = Color.white;
             maskImage.raycastTarget = false;
             var mask = maskRect.gameObject.AddComponent<Mask>();
@@ -505,7 +537,7 @@ namespace RunRich3D.Views
 
         private void BuildSettingsButton(RectTransform parent)
         {
-            const float size = 80f;
+            float size = _settings != null ? _settings.SettingsButtonSize : 80f;
             var button = CreateChild("Settings", parent);
             button.anchorMin = new Vector2(0f, 1f);
             button.anchorMax = new Vector2(0f, 1f);
@@ -514,7 +546,7 @@ namespace RunRich3D.Views
             button.sizeDelta = new Vector2(size, size);
 
             var background = button.gameObject.AddComponent<Image>();
-            background.sprite = CreateCapsuleSprite(80, 80);
+            background.sprite = CreateCapsuleSprite(Mathf.RoundToInt(size), Mathf.RoundToInt(size));
             background.type = Image.Type.Simple;
             background.preserveAspect = false;
             background.color = new Color(0.04f, 0.04f, 0.06f, 0.58f);
@@ -542,9 +574,9 @@ namespace RunRich3D.Views
             Stretch(column);
             _sideButtons = column.gameObject;
 
-            const float width = 148f;
-            const float height = 86f;
-            const float gap = 18f;
+            float width = _settings != null ? _settings.SideButtonSize.x : 148f;
+            float height = _settings != null ? _settings.SideButtonSize.y : 86f;
+            float gap = _settings != null ? _settings.SideButtonGap : 18f;
             float step = height + gap;
             CreateSideIcon("NoAds", column, _noAdsTexture, width, height, step);
             CreateSideIcon("ShopSkin", column, _shopSkinTexture, width, height, 0f);
@@ -581,7 +613,7 @@ namespace RunRich3D.Views
             hint.anchorMin = new Vector2(0.5f, 0f);
             hint.anchorMax = new Vector2(0.5f, 0f);
             hint.pivot = new Vector2(0.5f, 0f);
-            hint.anchoredPosition = new Vector2(0f, 88f);
+            hint.anchoredPosition = new Vector2(0f, _settings != null ? _settings.SwipeHintBottom : 88f);
             _swipeHint = hint.gameObject;
 
             var capsule = CreateChild("Capsule", hint);
@@ -600,7 +632,7 @@ namespace RunRich3D.Views
                 new Vector2(0.5f, 0.5f),
                 Vector2.zero,
                 new Vector2(40f, 56f));
-            label.text = "Проведите по экрану, чтобы повернуть";
+            label.text = _settings != null ? _settings.SwipeHintText : "Проведите по экрану, чтобы повернуть";
             float capsuleWidth = Mathf.Ceil(label.preferredWidth + 56f);
             const float capsuleHeight = 64f;
             capsule.sizeDelta = new Vector2(capsuleWidth, capsuleHeight);
@@ -647,7 +679,11 @@ namespace RunRich3D.Views
             finger.SetAsLastSibling();
             var motion = finger.gameObject.AddComponent<SwipeHintFingerView>();
             float travel = Mathf.Max(8f, capsuleWidth * 0.5f - 20f);
-            motion.Bind(travel);
+            motion.Bind(
+                travel,
+                _settings != null ? _settings.FingerOutSeconds : 0.55f,
+                _settings != null ? _settings.FingerInSeconds : 0.5f,
+                _settings != null ? _settings.FingerPauseSeconds : 0.45f);
         }
 
         private static Sprite CreateCapsuleSprite(int width, int height)

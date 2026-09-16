@@ -3,9 +3,9 @@ using RunRich3D.Views;
 
 namespace RunRich3D.Services
 {
-    internal sealed class PickupPools
+    public sealed class PickupPools
     {
-        internal PickupPools(Transform parent, GameObject moneyPrefab, GameObject bottlePrefab, float spinDegrees)
+        public PickupPools(Transform parent, GameObject moneyPrefab, GameObject bottlePrefab, float spinDegrees)
         {
             if (moneyPrefab != null)
             {
@@ -24,16 +24,16 @@ namespace RunRich3D.Services
             }
         }
 
-        internal PrefabPool<PickupSpinView> Money { get; }
-        internal PrefabPool<LevelPieceView> Bottles { get; }
+        public PrefabPool<PickupSpinView> Money { get; }
+        public PrefabPool<LevelPieceView> Bottles { get; }
 
-        internal void ReleaseAll()
+        public void ReleaseAll()
         {
             Money?.ReleaseAll();
             Bottles?.ReleaseAll();
         }
 
-        internal void Dispose()
+        public void Dispose()
         {
             Money?.Dispose();
             Bottles?.Dispose();

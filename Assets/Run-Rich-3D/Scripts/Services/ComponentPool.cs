@@ -3,7 +3,7 @@ using RunRich3D.Models;
 
 namespace RunRich3D.Services
 {
-    internal abstract class ComponentPool<T> : ObjectPool<T> where T : Component
+    public abstract class ComponentPool<T> : ObjectPool<T> where T : Component
     {
         private readonly Transform _parent;
 

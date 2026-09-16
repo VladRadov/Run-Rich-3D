@@ -7,19 +7,19 @@ namespace RunRich3D.Views
         [SerializeField] private GameObject[] _leftPieces;
         [SerializeField] private GameObject[] _rightPieces;
 
-        internal void Bind(GameObject[] leftPieces, GameObject[] rightPieces)
+        public void Bind(GameObject[] leftPieces, GameObject[] rightPieces)
         {
             _leftPieces = leftPieces;
             _rightPieces = rightPieces;
             ShowAll();
         }
 
-        internal void HidePassedSide(bool left)
+        public void HidePassedSide(bool left)
         {
             SetPieces(left ? _leftPieces : _rightPieces, false);
         }
 
-        internal void ShowAll()
+        public void ShowAll()
         {
             SetPieces(_leftPieces, true);
             SetPieces(_rightPieces, true);

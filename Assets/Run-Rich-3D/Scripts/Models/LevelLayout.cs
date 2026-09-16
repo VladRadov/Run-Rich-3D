@@ -1,23 +1,23 @@
 namespace RunRich3D.Models
 {
-    internal readonly struct PickupSpawn
+    public readonly struct PickupSpawn
     {
-        internal PickupSpawn(float x, float z, int wealthDelta)
+        public PickupSpawn(float x, float z, int wealthDelta)
         {
             X = x;
             Z = z;
             WealthDelta = wealthDelta;
         }
 
-        internal float X { get; }
-        internal float Z { get; }
-        internal int WealthDelta { get; }
-        internal bool IsPositive => WealthDelta > 0;
+        public float X { get; }
+        public float Z { get; }
+        public int WealthDelta { get; }
+        public bool IsPositive => WealthDelta > 0;
     }
 
-    internal readonly struct ObstacleSpawn
+    public readonly struct ObstacleSpawn
     {
-        internal ObstacleSpawn(float x, float z, float halfWidth, float halfDepth, int wealthPenalty)
+        public ObstacleSpawn(float x, float z, float halfWidth, float halfDepth, int wealthPenalty)
         {
             X = x;
             Z = z;
@@ -26,28 +26,28 @@ namespace RunRich3D.Models
             WealthPenalty = wealthPenalty;
         }
 
-        internal float X { get; }
-        internal float Z { get; }
-        internal float HalfWidth { get; }
-        internal float HalfDepth { get; }
-        internal int WealthPenalty { get; }
+        public float X { get; }
+        public float Z { get; }
+        public float HalfWidth { get; }
+        public float HalfDepth { get; }
+        public int WealthPenalty { get; }
     }
 
-    internal readonly struct FlagSpawn
+    public readonly struct FlagSpawn
     {
-        internal FlagSpawn(float x, float z)
+        public FlagSpawn(float x, float z)
         {
             X = x;
             Z = z;
         }
 
-        internal float X { get; }
-        internal float Z { get; }
+        public float X { get; }
+        public float Z { get; }
     }
 
-    internal readonly struct GateSpawn
+    public readonly struct GateSpawn
     {
-        internal GateSpawn(float z, int leftWealthDelta, int rightWealthDelta, string leftLabel, string rightLabel)
+        public GateSpawn(float z, int leftWealthDelta, int rightWealthDelta, string leftLabel, string rightLabel)
         {
             Z = z;
             LeftWealthDelta = leftWealthDelta;
@@ -56,16 +56,16 @@ namespace RunRich3D.Models
             RightLabel = rightLabel;
         }
 
-        internal float Z { get; }
-        internal int LeftWealthDelta { get; }
-        internal int RightWealthDelta { get; }
-        internal string LeftLabel { get; }
-        internal string RightLabel { get; }
+        public float Z { get; }
+        public int LeftWealthDelta { get; }
+        public int RightWealthDelta { get; }
+        public string LeftLabel { get; }
+        public string RightLabel { get; }
     }
 
-    internal readonly struct FinishSpawn
+    public readonly struct FinishSpawn
     {
-        internal FinishSpawn(float z, float laneHalfWidth, int leftMultiplier, int centerMultiplier, int rightMultiplier)
+        public FinishSpawn(float z, float laneHalfWidth, int leftMultiplier, int centerMultiplier, int rightMultiplier)
         {
             Z = z;
             LaneHalfWidth = laneHalfWidth;
@@ -74,16 +74,16 @@ namespace RunRich3D.Models
             RightMultiplier = rightMultiplier;
         }
 
-        internal float Z { get; }
-        internal float LaneHalfWidth { get; }
-        internal int LeftMultiplier { get; }
-        internal int CenterMultiplier { get; }
-        internal int RightMultiplier { get; }
+        public float Z { get; }
+        public float LaneHalfWidth { get; }
+        public int LeftMultiplier { get; }
+        public int CenterMultiplier { get; }
+        public int RightMultiplier { get; }
     }
 
-    internal sealed class LevelLayout
+    public sealed class LevelLayout
     {
-        internal LevelLayout(
+        public LevelLayout(
             PickupSpawn[] pickups,
             ObstacleSpawn[] obstacles,
             FlagSpawn[] flags,
@@ -101,12 +101,12 @@ namespace RunRich3D.Models
             PathTileLength = pathTileLength;
         }
 
-        internal PickupSpawn[] Pickups { get; }
-        internal ObstacleSpawn[] Obstacles { get; }
-        internal FlagSpawn[] Flags { get; }
-        internal GateSpawn Gate { get; }
-        internal FinishSpawn Finish { get; }
-        internal int PathTileCount { get; }
-        internal float PathTileLength { get; }
+        public PickupSpawn[] Pickups { get; }
+        public ObstacleSpawn[] Obstacles { get; }
+        public FlagSpawn[] Flags { get; }
+        public GateSpawn Gate { get; }
+        public FinishSpawn Finish { get; }
+        public int PathTileCount { get; }
+        public float PathTileLength { get; }
     }
 }

@@ -12,14 +12,14 @@ namespace RunRich3D.Views
 
         private Vector3 _followVelocity;
 
-        internal void BindSettings(Vector3 offset, float pitch, float horizontalSmoothTime)
+        public void BindSettings(Vector3 offset, float pitch, float horizontalSmoothTime)
         {
             _offset = offset;
             _pitch = pitch;
             _horizontalSmoothTime = horizontalSmoothTime;
         }
 
-        internal void SetTarget(Transform target)
+        public void SetTarget(Transform target)
         {
             _target = target;
         }

@@ -1,0 +1,173 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b11c2d3e4f5061728394a5b6c7d8e026, type: 3}
+  m_Name: LevelSettings
+  m_EditorClassIdentifier: 
+  _dollarPrefab: {fileID: 919132149155446097, guid: cb15039ea4138534fb257b96a219e684, type: 3}
+  _bottlePrefab: {fileID: 919132149155446097, guid: f6a1dfdcfc4157647b9393af24935ca5, type: 3}
+  _moneyMaterial: {fileID: 2100000, guid: b01d8fb93fc7d154998ed6e4211c055b, type: 2}
+  _bottleMaterial: {fileID: 2100000, guid: 60cff80b97d9a2b41bc2c142362811d5, type: 2}
+  _plusSignTexture: {fileID: 2800000, guid: 68779d6fd008d964d992cba901e62e2f, type: 3}
+  _world:
+    PathSurfaceY: 0.5
+    PathTileCount: 18
+    PathTileLength: 7.5
+    Pieces:
+    - Kind: 0
+      Length: 24
+      Radius: 12
+      Angle: 90
+    - Kind: 1
+      Length: 16
+      Radius: 14
+      Angle: 90
+    - Kind: 0
+      Length: 16
+      Radius: 12
+      Angle: 90
+    - Kind: 2
+      Length: 10
+      Radius: 12
+      Angle: 90
+    - Kind: 0
+      Length: 10
+      Radius: 12
+      Angle: 90
+    - Kind: 1
+      Length: 14
+      Radius: 12
+      Angle: 90
+    - Kind: 0
+      Length: 14
+      Radius: 12
+      Angle: 90
+    BendSegments: 18
+    BendHalfWidth: 3
+    BendSurfaceY: 0.5
+    MoneyScale: 1.4
+    MoneySpinDegreesPerSecond: 72
+    BottleScale: 1.15
+    PickupHalfWidth: 0.7
+    PickupHalfDepth: 0.65
+    MoneyTint: {r: 0.93, g: 0.74, b: 0.12, a: 1}
+    BottleTint: {r: 1, g: 0, b: 0, a: 1}
+    PickupGlossiness: 0.42
+    PickupMetallic: 0.15
+    PickupSignScale: 0.7
+    PickupSignOffset: {x: 0.4, y: 0.28, z: 0.12}
+    FlagScale: 0.28
+    FlagRaiseStart: 5.5
+    FlagRaiseEnd: 0.35
+    FlagStripPosition: {x: 0, y: 0.02, z: 21.2}
+    FlagStripScale: {x: 1, y: 0.18, z: 0.42}
+    LeftFlagUpEuler: {x: 0, y: 180, z: 0}
+    LeftFlagDownEuler: {x: 0, y: 180, z: 90}
+    RightFlagUpEuler: {x: 0, y: 0, z: 0}
+    RightFlagDownEuler: {x: 0, y: 0, z: 90}
+    GateHalfX: 1.45
+    GateDoorY: 0
+    GateDoorScale: 1.45
+    GateIconY: 1.01
+    PartyIconScale: 4.2
+    SchoolIconScale: 6.5
+    PartyIconSize: {x: 1.15, y: 1.15, z: 0.45}
+    SchoolIconSize: {x: 1.15, y: 1.15, z: 0.45}
+    GateLabelY: 2.45
+    GateDepth: 0.8
+    PartyLabelColor: {r: 1, g: 0.45, b: 0.3, a: 1}
+    SchoolLabelColor: {r: 0.35, g: 0.9, b: 0.4, a: 1}
+    PartyLabelBgSize: {x: 2.9, y: 0.78, z: 0.1}
+    SchoolLabelBgSize: {x: 2.2, y: 0.78, z: 0.1}
+    GateLabelOutlinePad: {x: 0.22, y: 0.12, z: 0.02}
+    FinishPlaneY: 0.03
+    FinishPlaneZOffset: 0.6
+    FinishPlaneScale: {x: 1, y: 0.16, z: 0.55}
+    FinishPlaneSize: {x: 5.4, y: 0.05, z: 3.4}
+    FinishStarSize: {x: 2.8, y: 0.04, z: 1.1}
+    FinishLaneX: 1.7
+    FinishPanelY: 0.9
+    FinishPanelScale: 3.6
+    FinishDoorZOffset: 1.15
+    FinishLabelY: 2.15
+    LabelCharacterSize: 0.06
+    LabelFontSize: 64
+  _pickups:
+  - X: 0
+    Z: 6.5
+    WealthDelta: 10
+  - X: -1.5
+    Z: 8.2
+    WealthDelta: 10
+  - X: 1.5
+    Z: 8.2
+    WealthDelta: 10
+  - X: 1.55
+    Z: 11.2
+    WealthDelta: -20
+  - X: -1.55
+    Z: 16.4
+    WealthDelta: 10
+  - X: 0
+    Z: 18.1
+    WealthDelta: 10
+  - X: 1.5
+    Z: 48
+    WealthDelta: 10
+  - X: -1.5
+    Z: 50
+    WealthDelta: -20
+  - X: 0
+    Z: 58
+    WealthDelta: 10
+  - X: 1.5
+    Z: 83
+    WealthDelta: 10
+  - X: -1.5
+    Z: 86
+    WealthDelta: 10
+  - X: 0
+    Z: 89
+    WealthDelta: 10
+  _obstacles:
+  - X: 1.45
+    Z: 13.4
+    HalfWidth: 0.55
+    HalfDepth: 0.55
+    WealthPenalty: -10
+  _flags:
+  - X: -2.55
+    Z: 21.2
+  - X: 2.55
+    Z: 21.2
+  _gateZ: 54
+  _gateLeftWealth: -15
+  _gateRightWealth: 20
+  _gateLeftLabel: "\u0412\u0435\u0447\u0435\u0440\u0438\u043D\u043A\u0430"
+  _gateRightLabel: "\u0428\u043A\u043E\u043B\u0430"
+  _finishZ: 118
+  _finishLaneHalfWidth: 0.85
+  _finishLeftMultiplier: 2
+  _finishCenterMultiplier: 3
+  _finishRightMultiplier: 5
+  _doorOpenStart: 5.5
+  _doorOpenEnd: 0.35
+  _doorOpenAngle: 95
+  _doorStopGap: 2.8
+  _afterLastOpenPadding: 1.2
+  _closedLaneClamp: 0.8
+  _defaultFallbackAngle: 90
+  _defaultFallbackRadius: 12
+  _defaultPathSurfaceY: 0.5
+  _defaultPickupHalfWidth: 0.7
+  _defaultPickupHalfDepth: 0.65
+  _defaultGateDepth: 0.8
+  _defaultMoneySpin: 72

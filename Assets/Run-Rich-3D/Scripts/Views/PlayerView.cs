@@ -10,6 +10,7 @@ namespace RunRich3D.Views
 
         [Header("Visual")]
         [SerializeField] private Transform _visualRoot;
+        [SerializeField] private Transform _spinRoot;
 
         private float _spinDuration = 0.48f;
 
@@ -26,7 +27,7 @@ namespace RunRich3D.Views
         private float _spinElapsed;
         private bool _spinning;
 
-        internal Transform MovementRoot
+        public Transform MovementRoot
         {
             get
             {
@@ -39,19 +40,19 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void Bind(Transform visualRoot, float spinDuration)
+        public void Bind(Transform visualRoot, float spinDuration)
         {
             _cachedTransform = transform;
             _visualRoot = visualRoot != null ? visualRoot : _cachedTransform;
             _spinDuration = spinDuration > 0f ? spinDuration : 0.48f;
         }
 
-        internal void AttachBanner(StatusBannerView banner)
+        public void AttachBanner(StatusBannerView banner)
         {
             _banner = banner;
         }
 
-        internal void BindBannerCamera(Transform camera)
+        public void BindBannerCamera(Transform camera)
         {
             if (_banner != null)
             {
@@ -59,7 +60,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void BindPlayerSkins(RuntimeAnimatorController animatorController, float outfitHeight)
+        public void BindPlayerSkins(RuntimeAnimatorController animatorController, float outfitHeight)
         {
             if (_visualRoot == null)
             {
@@ -86,12 +87,12 @@ namespace RunRich3D.Views
             AlignRigToSurface();
         }
 
-        internal void AlignToSurface()
+        public void AlignToSurface()
         {
             AlignRigToSurface();
         }
 
-        internal void SetWalking(bool walking)
+        public void SetWalking(bool walking)
         {
             if (_animator == null)
             {
@@ -101,7 +102,7 @@ namespace RunRich3D.Views
             _animator.SetBool(IsWalkingId, walking);
         }
 
-        internal void SetDancing(bool dancing)
+        public void SetDancing(bool dancing)
         {
             if (_animator == null)
             {
@@ -111,7 +112,7 @@ namespace RunRich3D.Views
             _animator.SetBool(IsDancingId, dancing);
         }
 
-        internal void SetOutfit(int index, bool spin)
+        public void SetOutfit(int index, bool spin)
         {
             int resolved = ResolveOutfit(index);
             if (resolved < 0)
@@ -131,7 +132,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void SetStatus(WealthTier tier, float normalizedFill)
+        public void SetStatus(WealthTier tier, float normalizedFill)
         {
             if (_banner != null)
             {
@@ -139,29 +140,29 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void SetPose(float lateralOffset, float forwardPosition)
+        public void SetPose(float lateralOffset, float forwardPosition)
         {
             SetPose(lateralOffset, forwardPosition, 0f);
         }
 
-        internal void SetPose(float lateralOffset, float forwardPosition, float steerYaw)
+        public void SetPose(float lateralOffset, float forwardPosition, float steerYaw)
         {
             SetPose(new Vector3(lateralOffset, 0f, forwardPosition), 0f, steerYaw);
         }
 
-        internal void SetPose(Vector3 worldPosition, float yawDegrees)
+        public void SetPose(Vector3 worldPosition, float yawDegrees)
         {
             SetPose(worldPosition, yawDegrees, 0f);
         }
 
-        internal void SetPose(Vector3 worldPosition, float yawDegrees, float steerYaw)
+        public void SetPose(Vector3 worldPosition, float yawDegrees, float steerYaw)
         {
             MovementRoot.position = worldPosition;
             MovementRoot.rotation = Quaternion.Euler(0f, yawDegrees, 0f);
             ApplySteerTilt(steerYaw);
         }
 
-        internal Transform EffectAnchor
+        public Transform EffectAnchor
         {
             get
             {
@@ -174,7 +175,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal Vector3 EffectWorldCenter
+        public Vector3 EffectWorldCenter
         {
             get
             {
@@ -185,7 +186,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal Vector3 EffectLocalCenter
+        public Vector3 EffectLocalCenter
         {
             get
             {
@@ -524,7 +525,11 @@ namespace RunRich3D.Views
                 return;
             }
 
-            Transform leftover = _visualRoot.Find("SpinRoot");
+            Transform leftover = _spinRoot;
+            if (leftover == null)
+            {
+                leftover = FindDirectChild(_visualRoot, "SpinRoot");
+            }
             if (leftover == null)
             {
                 return;
@@ -543,6 +548,10 @@ namespace RunRich3D.Views
 
             leftover.gameObject.SetActive(false);
             Object.Destroy(leftover.gameObject);
+            if (_spinRoot == leftover)
+            {
+                _spinRoot = null;
+            }
         }
 
         private void ClearGeneratedVisuals()
@@ -562,6 +571,25 @@ namespace RunRich3D.Views
                     }
                 }
             }
+        }
+
+        private static Transform FindDirectChild(Transform parent, string name)
+        {
+            if (parent == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform child = parent.GetChild(i);
+                if (child.name == name)
+                {
+                    return child;
+                }
+            }
+
+            return null;
         }
 
         private static Transform FindNamed(Transform root, string name)

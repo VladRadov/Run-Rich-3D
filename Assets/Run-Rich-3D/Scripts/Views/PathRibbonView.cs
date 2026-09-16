@@ -20,7 +20,7 @@ namespace RunRich3D.Views
         private MeshFilter _filter;
         private MeshRenderer _meshRenderer;
 
-        internal void Bind(
+        public void Bind(
             float radius,
             float angleDegrees,
             bool turnRight,
@@ -107,7 +107,7 @@ namespace RunRich3D.Views
             _mesh = null;
         }
 
-        internal static void BuildRibbon(
+        public static void BuildRibbon(
             Mesh mesh,
             float radius,
             float angleDegrees,

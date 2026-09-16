@@ -3,7 +3,8 @@
     "rootNamespace": "RunRich3D",
     "references": [
         "UniRx",
-        "UniTask"
+        "UniTask",
+        "Zenject"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

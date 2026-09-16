@@ -14,15 +14,15 @@ namespace RunRich3D.Views
         private float _raised = -1f;
         private bool _motionBound;
 
-        internal float TriggerZ => _triggerZ;
-        internal float Raised => _raised < 0f ? 0f : _raised;
+        public float TriggerZ => _triggerZ;
+        public float Raised => _raised < 0f ? 0f : _raised;
 
         private void Awake()
         {
             EnsureMotion();
         }
 
-        internal void BindMotion(float triggerZ, Quaternion downRotation, Quaternion upRotation)
+        public void BindMotion(float triggerZ, Quaternion downRotation, Quaternion upRotation)
         {
             _triggerZ = triggerZ;
             _downRotation = downRotation;
@@ -34,7 +34,7 @@ namespace RunRich3D.Views
             SetRaised(0f);
         }
 
-        internal void SetRaised(float raised)
+        public void SetRaised(float raised)
         {
             EnsureMotion();
             float t = Mathf.Clamp01(raised);

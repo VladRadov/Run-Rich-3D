@@ -1,5 +1,7 @@
 using UnityEngine;
+using Zenject;
 using RunRich3D.Views;
+using LightingSettings = RunRich3D.Settings.LightingSettings;
 
 namespace RunRich3D.Services
 {
@@ -7,20 +9,33 @@ namespace RunRich3D.Services
     {
         [Header("References")]
         [SerializeField] private Light _sun;
-        [SerializeField] private Material _skybox;
 
-        [Header("Ambient")]
-        [SerializeField] private Color _ambientSky = new Color(0.62f, 0.86f, 1f);
-        [SerializeField] private Color _ambientEquator = new Color(0.48f, 0.78f, 0.95f);
-        [SerializeField] private Color _ambientGround = new Color(0.78f, 0.78f, 0.72f);
-
+        private LightingSettings _settings;
         private SceneLightingView _view;
+
+        [Inject]
+        public void Construct(LightingSettings settings)
+        {
+            _settings = settings;
+        }
 
         public void Initialize()
         {
             GameObject host = _sun != null ? _sun.gameObject : gameObject;
             _view = EntityViewFactory.CreateOn<SceneLightingView>(host);
-            _view.Setup(_sun, _skybox, _ambientSky, _ambientEquator, _ambientGround);
+            _view.Setup(
+                _sun,
+                _settings.Skybox,
+                _settings.AmbientSky,
+                _settings.AmbientEquator,
+                _settings.AmbientGround,
+                _settings.PanoramicShaderName);
+            if (_sun != null)
+            {
+                _sun.color = _settings.SunColor;
+                _sun.intensity = _settings.SunIntensity;
+                _sun.shadowStrength = _settings.SunShadowStrength;
+            }
         }
 
         public void Dispose()

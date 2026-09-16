@@ -4,12 +4,14 @@ using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
+using RunRich3D.Settings;
 
 namespace RunRich3D.Views
 {
     public sealed class LosePanelView : MonoBehaviour
     {
         private readonly Subject<Unit> _retryClicked = new Subject<Unit>();
+        private HudSettings _settings;
         private Font _font;
         private Texture2D _bannerTexture;
         private Texture2D _buttonTexture;
@@ -18,17 +20,18 @@ namespace RunRich3D.Views
         private bool _busy;
         private CancellationTokenSource _introCts;
 
-        internal IObservable<Unit> RetryClicked => _retryClicked;
+        public IObservable<Unit> RetryClicked => _retryClicked;
 
-        internal void Bind(Font font, Texture2D bannerTexture, Texture2D buttonTexture)
+        public void Bind(HudSettings settings, Font font, Texture2D bannerTexture, Texture2D buttonTexture)
         {
+            _settings = settings;
             _font = font;
             _bannerTexture = bannerTexture;
             _buttonTexture = buttonTexture;
             EnsureBuilt();
         }
 
-        internal void Show()
+        public void Show()
         {
             EnsureBuilt();
             gameObject.SetActive(true);
@@ -36,7 +39,7 @@ namespace RunRich3D.Views
             PlayIntro();
         }
 
-        internal void Hide()
+        public void Hide()
         {
             CancelIntro();
             _busy = false;
@@ -77,7 +80,7 @@ namespace RunRich3D.Views
             _banner.anchorMax = new Vector2(1f, 1f);
             _banner.pivot = new Vector2(0.5f, 1f);
             _banner.anchoredPosition = Vector2.zero;
-            _banner.sizeDelta = new Vector2(0f, 340f);
+            _banner.sizeDelta = new Vector2(0f, _settings != null ? _settings.BannerHeight : 340f);
             var image = _banner.gameObject.AddComponent<RawImage>();
             image.texture = _bannerTexture;
             image.color = Color.white;
@@ -91,7 +94,7 @@ namespace RunRich3D.Views
                 TextAnchor.MiddleCenter,
                 new Vector2(0f, 8f),
                 new Vector2(960f, 110f));
-            title.text = "НЕУДАЧА";
+            title.text = _settings != null ? _settings.FailText : "НЕУДАЧА";
         }
 
         private void BuildRetryButton(RectTransform parent)
@@ -119,7 +122,7 @@ namespace RunRich3D.Views
                 FontStyle.Bold,
                 TextAnchor.MiddleCenter,
                 Vector2.zero,
-                new Vector2(480f, 90f)).text = "ПОВТОРИТЬ";
+                new Vector2(480f, 90f)).text = _settings != null ? _settings.RetryText : "ПОВТОРИТЬ";
         }
 
         private void OnRetryClicked()
@@ -147,10 +150,11 @@ namespace RunRich3D.Views
                 return;
             }
 
-            Vector2 hidden = new Vector2(0f, 360f);
+            Vector2 hidden = new Vector2(0f, _settings != null ? _settings.BannerHiddenOffsetY : 360f);
             Vector2 shown = Vector2.zero;
             _banner.anchoredPosition = hidden;
             float t = 0f;
+            float dropSeconds = _settings != null ? _settings.BannerDropSeconds : 0.42f;
             while (t < 1f)
             {
                 if (token.IsCancellationRequested)
@@ -158,7 +162,7 @@ namespace RunRich3D.Views
                     return;
                 }
 
-                t += Time.unscaledDeltaTime / 0.42f;
+                t += Time.unscaledDeltaTime / dropSeconds;
                 float u = Mathf.Clamp01(t);
                 float eased = 1f - (1f - u) * (1f - u);
                 _banner.anchoredPosition = Vector2.LerpUnclamped(hidden, shown, eased);

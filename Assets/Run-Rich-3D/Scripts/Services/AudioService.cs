@@ -1,40 +1,56 @@
 using UnityEngine;
+using Zenject;
 using RunRich3D.Controllers;
+using RunRich3D.Settings;
 using RunRich3D.Views;
+using AudioSettings = RunRich3D.Settings.AudioSettings;
 
 namespace RunRich3D.Services
 {
     public sealed class AudioService : MonoBehaviour, IGameService
     {
-        [Header("References")]
-        [SerializeField] private PlayerService _playerService;
-        [SerializeField] private LevelService _levelService;
+        [SerializeField] private AudioView _view;
+        [SerializeField] private AudioSource _sfxSource;
+        [SerializeField] private AudioSource _stepSource;
 
-        [Header("Clips")]
-        [SerializeField] private AudioClip[] _footsteps;
-        [SerializeField] private AudioClip _dollar;
-        [SerializeField] private AudioClip _bottle;
-        [SerializeField] private AudioClip _flag;
-        [SerializeField] private AudioClip _status;
-        [SerializeField] private AudioClip _door;
-        [SerializeField] private AudioClip _win;
-        [SerializeField] private AudioClip _lose;
-
-        [Header("Tuning")]
-        [SerializeField] private float _stepInterval = 0.52f;
-
-        private AudioView _view;
+        private AudioSettings _settings;
+        private PlayerService _playerService;
+        private LevelService _levelService;
         private AudioController _controller;
+
+        [Inject]
+        public void Construct(AudioSettings settings, PlayerService playerService, LevelService levelService)
+        {
+            _settings = settings;
+            _playerService = playerService;
+            _levelService = levelService;
+        }
 
         public void Initialize()
         {
-            _view = EntityViewFactory.CreateOn<AudioView>(gameObject);
-            _view.Bind(_footsteps, _dollar, _bottle, _flag, _status, _door, _win, _lose);
+            if (_view == null)
+            {
+                _view = EntityViewFactory.CreateOn<AudioView>(gameObject);
+            }
+
+            _sfxSource = EnsureSource(_sfxSource, "SfxSource", _settings.SfxVolume);
+            _stepSource = EnsureSource(_stepSource, "StepSource", _settings.FootstepVolume);
+            _view.Bind(
+                _sfxSource,
+                _stepSource,
+                _settings.Footsteps,
+                _settings.Dollar,
+                _settings.Bottle,
+                _settings.Flag,
+                _settings.Status,
+                _settings.Door,
+                _settings.Win,
+                _settings.Lose);
             _controller = new AudioController(
                 _view,
                 _playerService != null ? _playerService.Model : null,
                 _levelService != null ? _levelService.Events : null,
-                _stepInterval);
+                _settings);
             _controller.Initialize();
         }
 
@@ -42,6 +58,22 @@ namespace RunRich3D.Services
         {
             _controller?.Dispose();
             _controller = null;
+        }
+
+        private AudioSource EnsureSource(AudioSource source, string name, float volume)
+        {
+            if (source == null)
+            {
+                var go = new GameObject(name);
+                go.transform.SetParent(transform, false);
+                source = go.AddComponent<AudioSource>();
+            }
+
+            source.playOnAwake = false;
+            source.spatialBlend = 0f;
+            source.loop = false;
+            source.volume = volume;
+            return source;
         }
     }
 }

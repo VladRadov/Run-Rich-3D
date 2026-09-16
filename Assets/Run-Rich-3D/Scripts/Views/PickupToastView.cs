@@ -18,7 +18,7 @@ namespace RunRich3D.Views
         private float _displayedAmount;
         private bool _hasAmount;
 
-        internal void Bind(Font font, Texture2D dollarTexture, Vector2 restPosition)
+        public void Bind(Font font, Texture2D dollarTexture, Vector2 restPosition)
         {
             _restPosition = restPosition;
             _hasAmount = false;
@@ -28,12 +28,12 @@ namespace RunRich3D.Views
             SetPresentation(1f, 0f);
         }
 
-        internal void SetRestPosition(Vector2 restPosition)
+        public void SetRestPosition(Vector2 restPosition)
         {
             _restPosition = restPosition;
         }
 
-        internal void SetDelta(int signedAmount)
+        public void SetDelta(int signedAmount)
         {
             _targetAmount = signedAmount;
             if (!_hasAmount)
@@ -91,7 +91,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void SetPresentation(float alpha, float offsetY)
+        public void SetPresentation(float alpha, float offsetY)
         {
             if (_group != null)
             {

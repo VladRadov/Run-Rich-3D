@@ -4,14 +4,14 @@ using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
+using RunRich3D.Settings;
 
 namespace RunRich3D.Views
 {
     public sealed class WinPanelView : MonoBehaviour
     {
-        private static readonly int[] AdMultipliers = { 2, 3, 4, 5 };
-
         private readonly Subject<int> _collected = new Subject<int>();
+        private HudSettings _settings;
         private Font _font;
         private Texture2D _bannerTexture;
         private Texture2D _gaugeTexture;
@@ -38,9 +38,10 @@ namespace RunRich3D.Views
         private bool _busy;
         private CancellationTokenSource _introCts;
 
-        internal IObservable<int> Collected => _collected;
+        public IObservable<int> Collected => _collected;
 
-        internal void Bind(
+        public void Bind(
+            HudSettings settings,
             Font font,
             Texture2D bannerTexture,
             Texture2D gaugeTexture,
@@ -50,6 +51,7 @@ namespace RunRich3D.Views
             Texture2D playTexture,
             Texture2D billsTexture)
         {
+            _settings = settings;
             _font = font;
             _bannerTexture = bannerTexture;
             _gaugeTexture = gaugeTexture;
@@ -61,16 +63,16 @@ namespace RunRich3D.Views
             EnsureBuilt();
         }
 
-        internal void Show(int levelNumber, int baseReward)
+        public void Show(int levelNumber, int baseReward)
         {
             EnsureBuilt();
             gameObject.SetActive(true);
             _baseReward = baseReward < 0 ? 0 : baseReward;
             _busy = false;
             _needleActive = true;
-            _adMultiplier = 2;
-            _levelLabel.text = "Уровень " + levelNumber;
-            _doneLabel.text = "ЗАВЕРШЕНО";
+            _adMultiplier = FirstAdMultiplier();
+            _levelLabel.text = (_settings != null ? _settings.FormatLevel(levelNumber) : "Уровень " + levelNumber);
+            _doneLabel.text = _settings != null ? _settings.WinDoneText : "ЗАВЕРШЕНО";
             _claimAmount.text = _baseReward.ToString();
             RefreshAdLabels();
             if (_adButton != null)
@@ -91,7 +93,7 @@ namespace RunRich3D.Views
             PlayIntro();
         }
 
-        internal void Hide()
+        public void Hide()
         {
             CancelIntro();
             _needleActive = false;
@@ -111,10 +113,12 @@ namespace RunRich3D.Views
                 return;
             }
 
-            _needleSweep += Time.unscaledDeltaTime * 1.15f;
+            _needleSweep += Time.unscaledDeltaTime * (_settings != null ? _settings.NeedleSweepSpeed : 1.15f);
             float wave = Mathf.PingPong(_needleSweep, 1f);
             float eased = wave * wave * (3f - 2f * wave);
-            float angle = Mathf.Lerp(-72f, 72f, eased);
+            float minAngle = _settings != null ? _settings.NeedleMinAngle : -72f;
+            float maxAngle = _settings != null ? _settings.NeedleMaxAngle : 72f;
+            float angle = Mathf.Lerp(minAngle, maxAngle, eased);
             _needle.localEulerAngles = new Vector3(0f, 0f, -angle);
             int next = MultiplierFromAngle(angle);
             if (next != _adMultiplier)
@@ -164,7 +168,7 @@ namespace RunRich3D.Views
             _banner.anchorMax = new Vector2(1f, 1f);
             _banner.pivot = new Vector2(0.5f, 1f);
             _banner.anchoredPosition = Vector2.zero;
-            _banner.sizeDelta = new Vector2(0f, 340f);
+            _banner.sizeDelta = new Vector2(0f, _settings != null ? _settings.BannerHeight : 340f);
             var image = _banner.gameObject.AddComponent<RawImage>();
             image.texture = _bannerTexture;
             image.color = Color.white;
@@ -288,7 +292,7 @@ namespace RunRich3D.Views
                 FontStyle.Bold,
                 TextAnchor.MiddleCenter,
                 new Vector2(0f, 36f),
-                new Vector2(460f, 44f)).text = "ПОЛУЧИТЬ";
+                new Vector2(460f, 44f)).text = _settings != null ? _settings.ClaimText : "ПОЛУЧИТЬ";
             _claimAmount = CreateText(
                 "ClaimAmount",
                 buttonRect,
@@ -315,7 +319,7 @@ namespace RunRich3D.Views
                 TextAnchor.MiddleCenter,
                 Vector2.zero,
                 new Vector2(800f, 80f));
-            label.text = "Реклама";
+            label.text = _settings != null ? _settings.AdOverlayText : "Реклама";
             _adOverlay.gameObject.SetActive(false);
         }
 
@@ -364,7 +368,7 @@ namespace RunRich3D.Views
         {
             if (_adTitle != null)
             {
-                _adTitle.text = "ПОЛУЧИТЬ x" + _adMultiplier;
+                _adTitle.text = (_settings != null ? _settings.ClaimAdPrefix : "ПОЛУЧИТЬ x") + _adMultiplier;
             }
 
             if (_adAmount != null)
@@ -415,7 +419,7 @@ namespace RunRich3D.Views
             CancellationToken token = this.GetCancellationTokenOnDestroy();
             try
             {
-                await UniTask.Delay(TimeSpan.FromSeconds(1.4f), cancellationToken: token);
+                await UniTask.Delay(TimeSpan.FromSeconds(_settings != null ? _settings.AdOverlaySeconds : 1.4f), cancellationToken: token);
             }
             catch (OperationCanceledException)
             {
@@ -451,10 +455,11 @@ namespace RunRich3D.Views
                 return;
             }
 
-            Vector2 hidden = new Vector2(0f, 360f);
+            Vector2 hidden = new Vector2(0f, _settings != null ? _settings.BannerHiddenOffsetY : 360f);
             Vector2 shown = Vector2.zero;
             _banner.anchoredPosition = hidden;
             float t = 0f;
+            float dropSeconds = _settings != null ? _settings.BannerDropSeconds : 0.42f;
             while (t < 1f)
             {
                 if (token.IsCancellationRequested)
@@ -462,7 +467,7 @@ namespace RunRich3D.Views
                     return;
                 }
 
-                t += Time.unscaledDeltaTime / 0.42f;
+                t += Time.unscaledDeltaTime / dropSeconds;
                 float u = Mathf.Clamp01(t);
                 float eased = 1f - (1f - u) * (1f - u);
                 _banner.anchoredPosition = Vector2.LerpUnclamped(hidden, shown, eased);
@@ -484,11 +489,25 @@ namespace RunRich3D.Views
             _introCts = null;
         }
 
-        private static int MultiplierFromAngle(float angle)
+        private int FirstAdMultiplier()
         {
-            float u = Mathf.InverseLerp(-72f, 72f, angle);
-            int index = Mathf.Clamp(Mathf.FloorToInt(u * AdMultipliers.Length), 0, AdMultipliers.Length - 1);
-            return AdMultipliers[index];
+            int[] multipliers = Multipliers();
+            return multipliers[0];
+        }
+
+        private int[] Multipliers()
+        {
+            return _settings != null ? _settings.AdMultipliers : new[] { 2, 3, 4, 5 };
+        }
+
+        private int MultiplierFromAngle(float angle)
+        {
+            int[] multipliers = Multipliers();
+            float minAngle = _settings != null ? _settings.NeedleMinAngle : -72f;
+            float maxAngle = _settings != null ? _settings.NeedleMaxAngle : 72f;
+            float u = Mathf.InverseLerp(minAngle, maxAngle, angle);
+            int index = Mathf.Clamp(Mathf.FloorToInt(u * multipliers.Length), 0, multipliers.Length - 1);
+            return multipliers[index];
         }
 
         private static Button CreateButton(GameObject target, Graphic graphic, UnityEngine.Events.UnityAction onClick)

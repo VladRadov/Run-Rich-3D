@@ -8,31 +8,34 @@ using RunRich3D.Views;
 
 namespace RunRich3D.Controllers
 {
-    internal sealed class PickupEffectController : IDisposable
+    public sealed class PickupEffectController : IDisposable
     {
         private readonly PrefabPool<PooledParticleEffectView> _gainPool;
         private readonly PrefabPool<PooledParticleEffectView> _lossPool;
         private readonly PlayerView _playerView;
         private readonly ILevelEvents _events;
         private readonly PlayerModel _player;
+        private readonly float _fallbackDuration;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
         private CancellationTokenSource _cts = new CancellationTokenSource();
 
-        internal PickupEffectController(
+        public PickupEffectController(
             PrefabPool<PooledParticleEffectView> gainPool,
             PrefabPool<PooledParticleEffectView> lossPool,
             PlayerView playerView,
             ILevelEvents events,
-            PlayerModel player)
+            PlayerModel player,
+            float fallbackDuration)
         {
             _gainPool = gainPool;
             _lossPool = lossPool;
             _playerView = playerView;
             _events = events;
             _player = player;
+            _fallbackDuration = fallbackDuration > 0.05f ? fallbackDuration : 1.5f;
         }
 
-        internal void Initialize()
+        public void Initialize()
         {
             if (_events != null)
             {
@@ -87,7 +90,7 @@ namespace RunRich3D.Controllers
         {
             try
             {
-                float seconds = view != null && view.Duration > 0.05f ? view.Duration : 1.5f;
+                float seconds = view != null && view.Duration > 0.05f ? view.Duration : _fallbackDuration;
                 await UniTask.Delay(TimeSpan.FromSeconds(seconds), cancellationToken: token);
             }
             catch (OperationCanceledException)

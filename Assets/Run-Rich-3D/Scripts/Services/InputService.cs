@@ -1,8 +1,10 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Zenject;
 using RunRich3D.Controllers;
 using RunRich3D.Models;
+using RunRich3D.Settings;
 using RunRich3D.Views;
 
 namespace RunRich3D.Services
@@ -11,17 +13,23 @@ namespace RunRich3D.Services
     {
         [Header("References")]
         [SerializeField] private Transform _uiRoot;
+        [SerializeField] private EventSystem _eventSystem;
+        [SerializeField] private Canvas _canvas;
+        [SerializeField] private GameObject _inputCatcher;
 
-        [Header("Canvas")]
-        [SerializeField] private Vector2 _referenceResolution = new Vector2(1080f, 1920f);
-        [SerializeField] private float _matchWidthOrHeight = 1f;
-
+        private InputSettings _settings;
         private InputModel _model;
         private SwipeInputView _view;
         private InputController _controller;
 
-        internal InputModel Model => _model;
-        internal Transform CanvasRoot { get; private set; }
+        public InputModel Model => _model;
+        public Transform CanvasRoot { get; private set; }
+
+        [Inject]
+        public void Construct(InputSettings settings)
+        {
+            _settings = settings;
+        }
 
         public void Initialize()
         {
@@ -42,59 +50,50 @@ namespace RunRich3D.Services
 
         private void EnsureEventSystem()
         {
-            Transform existing = _uiRoot.Find("EventSystem");
-            if (existing != null)
+            if (_eventSystem != null)
             {
                 return;
             }
 
             var eventSystemObject = new GameObject("EventSystem");
             eventSystemObject.transform.SetParent(_uiRoot, false);
-            eventSystemObject.AddComponent<EventSystem>();
+            _eventSystem = eventSystemObject.AddComponent<EventSystem>();
             eventSystemObject.AddComponent<StandaloneInputModule>();
         }
 
         private GameObject EnsureInputCatcher()
         {
-            Transform canvasTransform = _uiRoot.Find("Canvas");
-            GameObject canvasObject;
-            if (canvasTransform == null)
+            if (_canvas == null)
             {
-                canvasObject = new GameObject("Canvas");
+                var canvasObject = new GameObject("Canvas");
                 canvasObject.transform.SetParent(_uiRoot, false);
-                var canvas = canvasObject.AddComponent<Canvas>();
-                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-                canvas.sortingOrder = 0;
+                _canvas = canvasObject.AddComponent<Canvas>();
+                _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                _canvas.sortingOrder = 0;
                 var scaler = canvasObject.AddComponent<CanvasScaler>();
                 scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-                scaler.referenceResolution = _referenceResolution;
-                scaler.matchWidthOrHeight = _matchWidthOrHeight;
+                scaler.referenceResolution = _settings.ReferenceResolution;
+                scaler.matchWidthOrHeight = _settings.MatchWidthOrHeight;
                 canvasObject.AddComponent<GraphicRaycaster>();
             }
-            else
+
+            CanvasRoot = _canvas.transform;
+            if (_inputCatcher != null)
             {
-                canvasObject = canvasTransform.gameObject;
+                return _inputCatcher;
             }
 
-            CanvasRoot = canvasObject.transform;
-
-            Transform catcherTransform = canvasObject.transform.Find("InputCatcher");
-            if (catcherTransform != null)
-            {
-                return catcherTransform.gameObject;
-            }
-
-            var catcher = new GameObject("InputCatcher");
-            var rect = catcher.AddComponent<RectTransform>();
-            catcher.transform.SetParent(canvasObject.transform, false);
+            _inputCatcher = new GameObject("InputCatcher");
+            var rect = _inputCatcher.AddComponent<RectTransform>();
+            _inputCatcher.transform.SetParent(_canvas.transform, false);
             rect.anchorMin = Vector2.zero;
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
-            var image = catcher.AddComponent<Image>();
+            var image = _inputCatcher.AddComponent<Image>();
             image.color = new Color(0f, 0f, 0f, 0f);
             image.raycastTarget = true;
-            return catcher;
+            return _inputCatcher;
         }
     }
 }

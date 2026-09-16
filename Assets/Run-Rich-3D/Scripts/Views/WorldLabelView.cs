@@ -12,7 +12,7 @@ namespace RunRich3D.Views
         [SerializeField] private float _characterSize = 0.06f;
         [SerializeField] private int _fontSize = 64;
 
-        internal static Quaternion TowardCamera { get; } = Quaternion.identity;
+        public static Quaternion TowardCamera { get; } = Quaternion.identity;
 
         private void OnEnable()
         {
@@ -22,7 +22,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void Bind(string text, Font font, Color color, float characterSize, int fontSize)
+        public void Bind(string text, Font font, Color color, float characterSize, int fontSize)
         {
             if (_label == null)
             {

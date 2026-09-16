@@ -5,19 +5,19 @@ using RunRich3D.Views;
 
 namespace RunRich3D.Controllers
 {
-    internal sealed class InputController : IDisposable
+    public sealed class InputController : IDisposable
     {
         private readonly InputModel _model;
         private readonly SwipeInputView _view;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
 
-        internal InputController(InputModel model, SwipeInputView view)
+        public InputController(InputModel model, SwipeInputView view)
         {
             _model = model;
             _view = view;
         }
 
-        internal void Initialize()
+        public void Initialize()
         {
             _view.Pressed.Subscribe(_model.Begin).AddTo(_disposables);
             _view.Moved.Subscribe(_model.Move).AddTo(_disposables);

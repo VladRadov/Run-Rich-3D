@@ -2,9 +2,9 @@ using System;
 
 namespace RunRich3D.Models
 {
-    internal readonly struct PathPose
+    public readonly struct PathPose
     {
-        internal PathPose(float x, float y, float z, float yawDegrees)
+        public PathPose(float x, float y, float z, float yawDegrees)
         {
             X = x;
             Y = y;
@@ -12,15 +12,15 @@ namespace RunRich3D.Models
             YawDegrees = yawDegrees;
         }
 
-        internal float X { get; }
-        internal float Y { get; }
-        internal float Z { get; }
-        internal float YawDegrees { get; }
+        public float X { get; }
+        public float Y { get; }
+        public float Z { get; }
+        public float YawDegrees { get; }
     }
 
-    internal readonly struct PathSegment
+    public readonly struct PathSegment
     {
-        internal PathSegment(bool isTurn, float lengthOrRadius, float angleDegrees, bool turnRight)
+        public PathSegment(bool isTurn, float lengthOrRadius, float angleDegrees, bool turnRight)
         {
             IsTurn = isTurn;
             if (isTurn)
@@ -40,23 +40,23 @@ namespace RunRich3D.Models
             }
         }
 
-        internal bool IsTurn { get; }
-        internal float Length { get; }
-        internal float Radius { get; }
-        internal float SignedAngle { get; }
-        internal float Sign => SignedAngle < 0f ? -1f : 1f;
+        public bool IsTurn { get; }
+        public float Length { get; }
+        public float Radius { get; }
+        public float SignedAngle { get; }
+        public float Sign => SignedAngle < 0f ? -1f : 1f;
 
-        internal static PathSegment Straight(float length)
+        public static PathSegment Straight(float length)
         {
             return new PathSegment(false, length, 0f, true);
         }
 
-        internal static PathSegment Turn(float radius, float angleDegrees, bool turnRight)
+        public static PathSegment Turn(float radius, float angleDegrees, bool turnRight)
         {
             return new PathSegment(true, radius, angleDegrees, turnRight);
         }
 
-        internal static PathSegment[] DefaultCourse()
+        public static PathSegment[] DefaultCourse()
         {
             return new[]
             {
@@ -71,22 +71,22 @@ namespace RunRich3D.Models
         }
     }
 
-    internal sealed class PathBend
+    public sealed class PathBend
     {
         private readonly CompiledPiece[] _pieces;
         private readonly float _pathY;
 
-        internal PathBend(PathSegment[] segments, float pathY)
+        public PathBend(PathSegment[] segments, float pathY)
         {
             _pathY = pathY;
             _pieces = Compile(segments);
             TotalLength = _pieces.Length == 0 ? 0f : _pieces[_pieces.Length - 1].StartDistance + _pieces[_pieces.Length - 1].Length;
         }
 
-        internal float TotalLength { get; }
-        internal CompiledPiece[] Pieces => _pieces;
+        public float TotalLength { get; }
+        public CompiledPiece[] Pieces => _pieces;
 
-        internal PathPose Sample(float distance, float lateral)
+        public PathPose Sample(float distance, float lateral)
         {
             if (_pieces.Length == 0)
             {
@@ -123,7 +123,7 @@ namespace RunRich3D.Models
             return ArcPose(piece, local, lateral);
         }
 
-        internal bool IsOnTurn(float distance)
+        public bool IsOnTurn(float distance)
         {
             for (int i = 0; i < _pieces.Length; i++)
             {
@@ -229,9 +229,9 @@ namespace RunRich3D.Models
             return pieces;
         }
 
-        internal readonly struct CompiledPiece
+        public readonly struct CompiledPiece
         {
-            internal CompiledPiece(
+            public CompiledPiece(
                 bool isTurn,
                 float startDistance,
                 float length,
@@ -251,15 +251,15 @@ namespace RunRich3D.Models
                 StartHeading = startHeading;
             }
 
-            internal bool IsTurn { get; }
-            internal float StartDistance { get; }
-            internal float Length { get; }
-            internal float Radius { get; }
-            internal float SignedAngle { get; }
-            internal float Sign => SignedAngle < 0f ? -1f : 1f;
-            internal float StartX { get; }
-            internal float StartZ { get; }
-            internal float StartHeading { get; }
+            public bool IsTurn { get; }
+            public float StartDistance { get; }
+            public float Length { get; }
+            public float Radius { get; }
+            public float SignedAngle { get; }
+            public float Sign => SignedAngle < 0f ? -1f : 1f;
+            public float StartX { get; }
+            public float StartZ { get; }
+            public float StartHeading { get; }
         }
     }
 }

@@ -2,7 +2,8 @@
     "name": "RunRich3D.Editor",
     "rootNamespace": "RunRich3D.Editor",
     "references": [
-        "RunRich3D"
+        "RunRich3D",
+        "Zenject"
     ],
     "includePlatforms": [
         "Editor"

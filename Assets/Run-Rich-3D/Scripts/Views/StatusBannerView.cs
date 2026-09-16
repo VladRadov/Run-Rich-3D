@@ -1,5 +1,6 @@
 using UnityEngine;
 using RunRich3D.Models;
+using RunRich3D.Settings;
 
 namespace RunRich3D.Views
 {
@@ -10,6 +11,7 @@ namespace RunRich3D.Views
         [SerializeField] private Transform _fill;
         [SerializeField] private MeshRenderer _fillRenderer;
 
+        private PlayerSettings _settings;
         private Material _fillMaterial;
         private float _fillMaxWidth;
         private float _minFill = 0.08f;
@@ -19,10 +21,8 @@ namespace RunRich3D.Views
         private WealthTier _shownTier;
         private bool _hasShownTier;
         private float _punchElapsed = -1f;
-        private const float PunchDuration = 0.34f;
-        private const float PunchPeak = 1.55f;
 
-        internal void Bind(
+        public void Bind(
             TextMesh label,
             Transform fill,
             MeshRenderer fillRenderer,
@@ -30,7 +30,8 @@ namespace RunRich3D.Views
             Font font,
             float characterSize,
             int fontSize,
-            float minFill)
+            float minFill,
+            PlayerSettings settings)
         {
             _label = label;
             _fill = fill;
@@ -38,6 +39,7 @@ namespace RunRich3D.Views
             _fillMaterial = fillMaterial;
             _fillMaxWidth = fill != null ? fill.localScale.x : 1.2f;
             _minFill = minFill;
+            _settings = settings;
             _hasShownTier = false;
             _punchElapsed = -1f;
 
@@ -73,7 +75,7 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void BindCamera(Transform camera)
+        public void BindCamera(Transform camera)
         {
             _camera = camera;
         }
@@ -97,9 +99,9 @@ namespace RunRich3D.Views
             UpdatePunch();
         }
 
-        internal void SetStatus(WealthTier tier, float normalizedFill)
+        public void SetStatus(WealthTier tier, float normalizedFill)
         {
-            Color color = WealthPalette.BarOf(tier);
+            Color color = _settings != null ? _settings.StatusBarColor(tier) : WealthPalette.BarOf(tier);
             if (_label != null)
             {
                 _label.text = WealthScale.Label(tier);
@@ -144,7 +146,8 @@ namespace RunRich3D.Views
             }
 
             _punchElapsed += Time.deltaTime;
-            float u = Mathf.Clamp01(_punchElapsed / PunchDuration);
+            float duration = _settings != null ? _settings.BannerPunchDuration : 0.34f;
+            float u = Mathf.Clamp01(_punchElapsed / duration);
             _labelTransform.localScale = _labelRestScale * PunchScale(u);
             if (u >= 1f)
             {
@@ -153,18 +156,21 @@ namespace RunRich3D.Views
             }
         }
 
-        private static float PunchScale(float u)
+        private float PunchScale(float u)
         {
-            if (u < 0.38f)
+            float peak = _settings != null ? _settings.BannerPunchPeak : 1.55f;
+            float rise = _settings != null ? Mathf.Clamp(_settings.BannerPunchRisePortion, 0.01f, 0.95f) : 0.38f;
+
+            if (u < rise)
             {
-                float t = u / 0.38f;
+                float t = u / rise;
                 t = 1f - (1f - t) * (1f - t);
-                return Mathf.Lerp(1f, PunchPeak, t);
+                return Mathf.Lerp(1f, peak, t);
             }
 
-            float back = (u - 0.38f) / 0.62f;
+            float back = (u - rise) / (1f - rise);
             back = back * back;
-            return Mathf.Lerp(PunchPeak, 1f, back);
+            return Mathf.Lerp(peak, 1f, back);
         }
     }
 }

@@ -9,9 +9,9 @@ namespace RunRich3D.Views
         private float _duration = 1.5f;
         private Transform _cached;
 
-        internal float Duration => _duration;
+        public float Duration => _duration;
 
-        internal void Bind()
+        public void Bind()
         {
             _cached = transform;
             DisableCfxrAutoDestroy();
@@ -20,7 +20,7 @@ namespace RunRich3D.Views
             _duration = MeasureDuration();
         }
 
-        internal void Play(Vector3 worldPosition)
+        public void Play(Vector3 worldPosition)
         {
             if (_cached == null)
             {
@@ -33,7 +33,7 @@ namespace RunRich3D.Views
             Restart();
         }
 
-        internal void StopAndClear()
+        public void StopAndClear()
         {
             if (_systems == null)
             {

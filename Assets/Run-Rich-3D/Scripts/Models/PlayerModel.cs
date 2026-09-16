@@ -2,15 +2,15 @@ using UniRx;
 
 namespace RunRich3D.Models
 {
-    internal sealed class PlayerModel
+    public sealed class PlayerModel
     {
-        internal IReadOnlyReactiveProperty<float> LateralOffset => _lateralOffset;
-        internal IReadOnlyReactiveProperty<float> ForwardPosition => _forwardPosition;
-        internal IReadOnlyReactiveProperty<int> Wealth => _wealth;
-        internal IReadOnlyReactiveProperty<WealthTier> Tier => _tier;
-        internal IReadOnlyReactiveProperty<int> OutfitIndex => _outfitIndex;
-        internal IReadOnlyReactiveProperty<GamePhase> Phase => _phase;
-        internal WealthRules Rules => _rules;
+        public IReadOnlyReactiveProperty<float> LateralOffset => _lateralOffset;
+        public IReadOnlyReactiveProperty<float> ForwardPosition => _forwardPosition;
+        public IReadOnlyReactiveProperty<int> Wealth => _wealth;
+        public IReadOnlyReactiveProperty<WealthTier> Tier => _tier;
+        public IReadOnlyReactiveProperty<int> OutfitIndex => _outfitIndex;
+        public IReadOnlyReactiveProperty<GamePhase> Phase => _phase;
+        public WealthRules Rules => _rules;
 
         private readonly WealthRules _rules;
         private readonly FloatReactiveProperty _lateralOffset = new FloatReactiveProperty(0f);
@@ -20,27 +20,27 @@ namespace RunRich3D.Models
         private readonly IntReactiveProperty _outfitIndex = new IntReactiveProperty(PlayerOutfits.Poor);
         private readonly ReactiveProperty<GamePhase> _phase = new ReactiveProperty<GamePhase>(GamePhase.WaitingToStart);
 
-        internal PlayerModel(WealthRules rules)
+        public PlayerModel(WealthRules rules)
         {
             _rules = rules;
         }
 
-        internal void SetLateralOffset(float value)
+        public void SetLateralOffset(float value)
         {
             _lateralOffset.Value = value;
         }
 
-        internal void SetForwardPosition(float value)
+        public void SetForwardPosition(float value)
         {
             _forwardPosition.Value = value;
         }
 
-        internal void SetPhase(GamePhase phase)
+        public void SetPhase(GamePhase phase)
         {
             _phase.Value = phase;
         }
 
-        internal void AddWealth(int delta)
+        public void AddWealth(int delta)
         {
             int next = _wealth.Value + delta;
             if (next < 0)
@@ -59,7 +59,7 @@ namespace RunRich3D.Models
             RefreshFromWealth();
         }
 
-        internal void ApplyMultiplier(int multiplier)
+        public void ApplyMultiplier(int multiplier)
         {
             if (multiplier <= 1)
             {
@@ -70,7 +70,7 @@ namespace RunRich3D.Models
             RefreshFromWealth();
         }
 
-        internal void Reset(int startWealth)
+        public void Reset(int startWealth)
         {
             _lateralOffset.Value = 0f;
             _forwardPosition.Value = 0f;

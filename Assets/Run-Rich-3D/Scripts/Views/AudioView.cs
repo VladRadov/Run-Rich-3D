@@ -17,7 +17,9 @@ namespace RunRich3D.Views
         private int _stepIndex;
         private bool _bound;
 
-        internal void Bind(
+        public void Bind(
+            AudioSource sfx,
+            AudioSource steps,
             AudioClip[] footsteps,
             AudioClip dollar,
             AudioClip bottle,
@@ -27,6 +29,8 @@ namespace RunRich3D.Views
             AudioClip win,
             AudioClip lose)
         {
+            _sfx = sfx;
+            _steps = steps;
             _footsteps = footsteps;
             _dollar = dollar;
             _bottle = bottle;
@@ -35,47 +39,45 @@ namespace RunRich3D.Views
             _door = door;
             _win = win;
             _lose = lose;
-            _sfx = EnsureSource("SfxSource", 0.9f);
-            _steps = EnsureSource("StepSource", 0.55f);
-            _bound = true;
+            _bound = _sfx != null && _steps != null;
         }
 
-        internal void PlayDollar()
+        public void PlayDollar()
         {
             Play(_dollar);
         }
 
-        internal void PlayBottle()
+        public void PlayBottle()
         {
             Play(_bottle);
         }
 
-        internal void PlayFlag()
+        public void PlayFlag()
         {
             Play(_flag);
         }
 
-        internal void PlayStatus()
+        public void PlayStatus()
         {
             Play(_status);
         }
 
-        internal void PlayDoor()
+        public void PlayDoor()
         {
             Play(_door);
         }
 
-        internal void PlayWin()
+        public void PlayWin()
         {
             Play(_win);
         }
 
-        internal void PlayLose()
+        public void PlayLose()
         {
             Play(_lose);
         }
 
-        internal void PlayFootstep()
+        public void PlayFootstep()
         {
             if (!_bound || _steps == null || _footsteps == null || _footsteps.Length == 0)
             {
@@ -98,24 +100,6 @@ namespace RunRich3D.Views
             }
 
             _sfx.PlayOneShot(clip);
-        }
-
-        private AudioSource EnsureSource(string name, float volume)
-        {
-            Transform existing = transform.Find(name);
-            AudioSource source = existing != null ? existing.GetComponent<AudioSource>() : null;
-            if (source == null)
-            {
-                var go = new GameObject(name);
-                go.transform.SetParent(transform, false);
-                source = go.AddComponent<AudioSource>();
-            }
-
-            source.playOnAwake = false;
-            source.spatialBlend = 0f;
-            source.loop = false;
-            source.volume = volume;
-            return source;
         }
     }
 }

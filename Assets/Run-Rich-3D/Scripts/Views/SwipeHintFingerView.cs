@@ -9,12 +9,18 @@ namespace RunRich3D.Views
     {
         private RectTransform _rect;
         private float _travel;
+        private float _outSeconds = 0.55f;
+        private float _inSeconds = 0.5f;
+        private float _pauseSeconds = 0.45f;
         private CancellationTokenSource _loopCts;
 
-        internal void Bind(float travel)
+        public void Bind(float travel, float outSeconds, float inSeconds, float pauseSeconds)
         {
             _rect = (RectTransform)transform;
             _travel = travel > 1f ? travel : 1f;
+            _outSeconds = outSeconds > 0.01f ? outSeconds : 0.55f;
+            _inSeconds = inSeconds > 0.01f ? inSeconds : 0.5f;
+            _pauseSeconds = pauseSeconds > 0.01f ? pauseSeconds : 0.45f;
             SetX(0f);
             RestartLoop();
         }
@@ -51,9 +57,9 @@ namespace RunRich3D.Views
             {
                 while (!token.IsCancellationRequested)
                 {
-                    await MoveXAsync(0f, -_travel, 0.55f, token);
-                    await MoveXAsync(-_travel, 0f, 0.5f, token);
-                    await UniTask.Delay(TimeSpan.FromSeconds(0.45f), cancellationToken: token);
+                    await MoveXAsync(0f, -_travel, _outSeconds, token);
+                    await MoveXAsync(-_travel, 0f, _inSeconds, token);
+                    await UniTask.Delay(TimeSpan.FromSeconds(_pauseSeconds), cancellationToken: token);
                 }
             }
             catch (OperationCanceledException)

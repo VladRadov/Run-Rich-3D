@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b11c2d3e4f5061728394a5b6c7d8e020, type: 3}
+  m_Name: PlayerSettings
+  m_EditorClassIdentifier: 
+  _pathWidth: 5.2
+  _steerSensitivity: 2.1
+  _forwardSpeed: 5
+  _offPathSlack: 0
+  _maxSteerYaw: 42
+  _steerYawPerSpeed: 11
+  _steerYawSmooth: 10
+  _lateralSmoothTime: 0.14
+  _minLateralLimit: 0.1
+  _steerIdleSnapDegrees: 0.05
+  _outfitHeight: 2.7
+  _spinDuration: 0.48
+  _startWealth: 0
+  _comfortableWealth: 80
+  _richWealth: 140
+  _maxDisplayWealth: 180
+  _middleOutfitWealth: 40
+  _casualOutfitWealth: 60
+  _cocktailOutfitWealth: 80
+  _businessOutfitWealth: 100
+  _blingOutfitWealth: 120
+  _bannerLocalPosition: {x: 0, y: 3.4, z: 0}
+  _bannerLookOffset: {x: 0, y: 3.45, z: -8.4}
+  _bannerTrackScale: {x: 1.2, y: 0.1, z: 0.1}
+  _bannerFillScale: {x: 1.2, y: 0.12, z: 0.12}
+  _bannerLabelOffset: {x: 0, y: 0.28, z: 0}
+  _bannerLabelCharacterSize: 0.045
+  _bannerLabelFontSize: 64
+  _bannerMinFill: 0.08
+  _bannerTrackColor: {r: 0.12, g: 0.12, b: 0.14, a: 1}
+  _bannerTrackGlossiness: 0.15
+  _bannerPunchDuration: 0.34
+  _bannerPunchPeak: 1.55
+  _bannerPunchRisePortion: 0.38
+  _standardShaderName: Standard
+  _poorColor: {r: 0.45, g: 0.32, b: 0.22, a: 1}
+  _comfortableColor: {r: 0.35, g: 0.48, b: 0.72, a: 1}
+  _richColor: {r: 0.92, g: 0.74, b: 0.18, a: 1}
+  _poorBarColor: {r: 0.92, g: 0.28, b: 0.28, a: 1}
+  _comfortableBarColor: {r: 0.98, g: 0.78, b: 0.18, a: 1}
+  _richBarColor: {r: 0.28, g: 0.82, b: 0.38, a: 1}

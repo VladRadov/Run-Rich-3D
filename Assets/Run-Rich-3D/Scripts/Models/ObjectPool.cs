@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace RunRich3D.Models
 {
-    internal abstract class ObjectPool<T> : IDisposable where T : class
+    public abstract class ObjectPool<T> : IDisposable where T : class
     {
         private readonly Stack<T> _available = new Stack<T>();
         private readonly HashSet<T> _active = new HashSet<T>();
@@ -23,7 +23,7 @@ namespace RunRich3D.Models
         {
         }
 
-        internal T Get()
+        public T Get()
         {
             T item = _available.Count > 0 ? _available.Pop() : CreateAndTrack();
             _active.Add(item);
@@ -31,7 +31,7 @@ namespace RunRich3D.Models
             return item;
         }
 
-        internal void Release(T item)
+        public void Release(T item)
         {
             if (item == null || !_active.Remove(item))
             {
@@ -42,7 +42,7 @@ namespace RunRich3D.Models
             _available.Push(item);
         }
 
-        internal void ReleaseAll()
+        public void ReleaseAll()
         {
             if (_active.Count == 0)
             {

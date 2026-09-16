@@ -11,7 +11,7 @@ namespace RunRich3D.Views
         private Quaternion _facing;
         private float _worldScale = 0.7f;
 
-        internal void Bind(Transform anchor, Vector3 worldOffset, Quaternion facing, float worldScale)
+        public void Bind(Transform anchor, Vector3 worldOffset, Quaternion facing, float worldScale)
         {
             _cached = transform;
             _anchor = anchor;

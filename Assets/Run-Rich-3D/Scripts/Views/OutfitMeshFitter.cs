@@ -2,9 +2,9 @@ using UnityEngine;
 
 namespace RunRich3D.Views
 {
-    internal static class OutfitMeshFitter
+    public static class OutfitMeshFitter
     {
-        internal static Renderer Build(Transform node, Mesh mesh, Material material, float targetHeight, Quaternion standUp)
+        public static Renderer Build(Transform node, Mesh mesh, Material material, float targetHeight, Quaternion standUp)
         {
             if (node == null || mesh == null)
             {
