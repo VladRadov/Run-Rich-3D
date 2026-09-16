@@ -4,11 +4,11 @@ namespace RunRich3D.Views
 {
     internal static class OutfitMeshFitter
     {
-        internal static void Build(Transform node, Mesh mesh, Material material, float targetHeight, Quaternion standUp)
+        internal static Renderer Build(Transform node, Mesh mesh, Material material, float targetHeight, Quaternion standUp)
         {
             if (node == null || mesh == null)
             {
-                return;
+                return null;
             }
 
             StripSkin(node);
@@ -28,6 +28,7 @@ namespace RunRich3D.Views
             filter.sharedMesh = mesh;
             renderer.sharedMaterial = material;
             Fit(node, mesh, targetHeight, standUp);
+            return renderer;
         }
 
         private static void StripSkin(Transform node)
@@ -36,12 +37,6 @@ namespace RunRich3D.Views
             if (skinned != null)
             {
                 Object.DestroyImmediate(skinned);
-            }
-
-            Transform bones = node.Find("Bones");
-            if (bones != null)
-            {
-                Object.DestroyImmediate(bones.gameObject);
             }
         }
 

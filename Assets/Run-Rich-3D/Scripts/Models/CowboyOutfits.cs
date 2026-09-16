@@ -2,66 +2,12 @@ namespace RunRich3D.Models
 {
     internal static class CowboyOutfits
     {
-        internal const int Casual = 0;
-        internal const int Poor = 1;
-        internal const int Middle = 2;
-        internal const int Rich = 3;
-        internal const int Millionaire = 4;
-        internal const int Count = 5;
-
-        internal const int CasualThreshold = 40;
-        internal const int MiddleThreshold = 60;
-        internal const int RichThreshold = 80;
-        internal const int MillionaireThreshold = 100;
-
-        internal static int UpgradeFrom(int current)
-        {
-            if (current <= Casual)
-            {
-                return Middle;
-            }
-
-            if (current >= Count - 1)
-            {
-                return Count - 1;
-            }
-
-            return current + 1;
-        }
-
-        internal static int DowngradeFrom(int current)
-        {
-            if (current <= Casual)
-            {
-                return Casual;
-            }
-
-            return current - 1;
-        }
-
-        internal static int FromWealth(int wealth)
-        {
-            if (wealth >= MillionaireThreshold)
-            {
-                return Millionaire;
-            }
-
-            if (wealth >= RichThreshold)
-            {
-                return Rich;
-            }
-
-            if (wealth >= MiddleThreshold)
-            {
-                return Middle;
-            }
-
-            if (wealth >= CasualThreshold)
-            {
-                return Casual;
-            }
-
-            return Poor;
-        }
+        internal const int Poor = PlayerOutfits.Poor;
+        internal const int Middle = PlayerOutfits.Middle;
+        internal const int Casual = PlayerOutfits.Casual;
+        internal const int Cocktail = PlayerOutfits.Cocktail;
+        internal const int Business = PlayerOutfits.Business;
+        internal const int Bling = PlayerOutfits.Bling;
+        internal const int Count = PlayerOutfits.Count;
     }
 }

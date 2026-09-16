@@ -15,11 +15,17 @@ namespace RunRich3D.Controllers
         private readonly float _sensitivity;
         private readonly float _forwardSpeed;
         private readonly float _offPathSlack;
+        private readonly float _maxSteerYaw;
+        private readonly float _steerYawPerSpeed;
+        private readonly float _steerYawSmooth;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
         private PathBend _path;
 
         private float _dragOriginScreenX;
         private float _dragOriginLateral;
+        private float _lastLateral;
+        private float _steerYaw;
+        private bool _hasLastLateral;
 
         internal PlayerController(
             PlayerModel model,
@@ -28,7 +34,10 @@ namespace RunRich3D.Controllers
             float pathWidth,
             float sensitivity,
             float forwardSpeed,
-            float offPathSlack)
+            float offPathSlack,
+            float maxSteerYaw,
+            float steerYawPerSpeed,
+            float steerYawSmooth)
         {
             _model = model;
             _view = view;
@@ -37,17 +46,13 @@ namespace RunRich3D.Controllers
             _sensitivity = sensitivity;
             _forwardSpeed = forwardSpeed;
             _offPathSlack = offPathSlack;
+            _maxSteerYaw = maxSteerYaw > 1f ? maxSteerYaw : 42f;
+            _steerYawPerSpeed = steerYawPerSpeed > 0.01f ? steerYawPerSpeed : 11f;
+            _steerYawSmooth = steerYawSmooth > 0.01f ? steerYawSmooth : 10f;
         }
 
         internal void Initialize()
         {
-            Observable.CombineLatest(
-                    _model.LateralOffset,
-                    _model.ForwardPosition,
-                    (x, z) => new Vector2(x, z))
-                .Subscribe(pose => ApplyPose(pose.x, pose.y))
-                .AddTo(_disposables);
-
             _model.Wealth
                 .Subscribe(wealth => _view.SetStatus(
                     _model.Rules.TierFrom(wealth),
@@ -55,8 +60,15 @@ namespace RunRich3D.Controllers
                 .AddTo(_disposables);
 
             _model.Phase
-                .Where(phase => phase == GamePhase.WaitingToStart)
-                .Subscribe(_ => _view.SetOutfit(_model.OutfitIndex.Value, false))
+                .Subscribe(phase =>
+                {
+                    bool playing = phase == GamePhase.Playing;
+                    _view.SetWalking(playing);
+                    if (!playing)
+                    {
+                        _view.SetOutfit(_model.OutfitIndex.Value, false);
+                    }
+                })
                 .AddTo(_disposables);
 
             _model.OutfitIndex
@@ -76,11 +88,15 @@ namespace RunRich3D.Controllers
                 .AddTo(_disposables);
 
             Observable.EveryUpdate()
-                .Where(_ => _model.Phase.Value == GamePhase.Playing)
                 .Subscribe(_ =>
                 {
-                    _model.SetForwardPosition(
-                        _model.ForwardPosition.Value + _forwardSpeed * Time.deltaTime);
+                    if (_model.Phase.Value == GamePhase.Playing)
+                    {
+                        _model.SetForwardPosition(
+                            _model.ForwardPosition.Value + _forwardSpeed * Time.deltaTime);
+                    }
+
+                    ApplyPose(_model.LateralOffset.Value, _model.ForwardPosition.Value);
                 })
                 .AddTo(_disposables);
         }
@@ -98,14 +114,43 @@ namespace RunRich3D.Controllers
 
         private void ApplyPose(float lateral, float distance)
         {
+            float steerYaw = UpdateSteerYaw(lateral);
             if (_path == null)
             {
-                _view.SetPose(lateral, distance);
+                _view.SetPose(lateral, distance, steerYaw);
                 return;
             }
 
             PathPose pose = _path.Sample(distance, lateral);
-            _view.SetPose(new Vector3(pose.X, pose.Y, pose.Z), pose.YawDegrees);
+            _view.SetPose(new Vector3(pose.X, pose.Y, pose.Z), pose.YawDegrees, steerYaw);
+        }
+
+        private float UpdateSteerYaw(float lateral)
+        {
+            float dt = Time.deltaTime;
+            float targetYaw = 0f;
+            if (_hasLastLateral && dt > 0.0001f && _model.Phase.Value == GamePhase.Playing)
+            {
+                float speed = (lateral - _lastLateral) / dt;
+                targetYaw = Mathf.Clamp(speed * _steerYawPerSpeed, -_maxSteerYaw, _maxSteerYaw);
+            }
+
+            _lastLateral = lateral;
+            _hasLastLateral = true;
+
+            if (dt <= 0.0001f)
+            {
+                return _steerYaw;
+            }
+
+            float blend = 1f - Mathf.Exp(-_steerYawSmooth * dt);
+            _steerYaw = Mathf.Lerp(_steerYaw, targetYaw, blend);
+            if (Mathf.Abs(_steerYaw) < 0.05f && Mathf.Abs(targetYaw) < 0.05f)
+            {
+                _steerYaw = 0f;
+            }
+
+            return _steerYaw;
         }
 
         private void OnPressed(float screenX)

@@ -5,6 +5,8 @@ namespace RunRich3D.Views
 {
     public sealed class PlayerView : MonoBehaviour
     {
+        private static readonly int IsWalkingId = Animator.StringToHash("IsWalking");
+
         [Header("Visual")]
         [SerializeField] private Transform _visualRoot;
 
@@ -12,8 +14,11 @@ namespace RunRich3D.Views
 
         private Transform _cachedTransform;
         private Transform _spinRoot;
+        private Transform _rigRoot;
+        private Animator _animator;
+        private float _outfitHeight = 1.85f;
         private GameObject[] _outfits;
-        private MeshRenderer[] _outfitRenderers;
+        private Renderer[] _outfitRenderers;
         private StatusBannerView _banner;
         private int _activeOutfit = -1;
         private float _spinElapsed;
@@ -52,35 +57,49 @@ namespace RunRich3D.Views
             }
         }
 
-        internal void BuildOutfits(Mesh[] meshes, Material material, float height, Vector3 standEuler)
+        internal void BindPlayerSkins(RuntimeAnimatorController animatorController, float outfitHeight)
         {
-            if (_visualRoot == null || meshes == null || meshes.Length == 0)
+            if (_visualRoot == null)
             {
                 return;
             }
 
-            ClearLegacyVisuals();
-            RebuildSpinRoot();
-            _outfits = new GameObject[meshes.Length];
-            _outfitRenderers = new MeshRenderer[meshes.Length];
-            Quaternion standUp = Quaternion.Euler(standEuler);
-            for (int i = 0; i < meshes.Length; i++)
+            _outfitHeight = outfitHeight > 0.1f ? outfitHeight : 1.85f;
+            ClearGeneratedVisuals();
+            EnsureSpinRoot();
+            _rigRoot = FindPlayerRig();
+            if (_rigRoot == null)
             {
-                if (meshes[i] == null)
-                {
-                    continue;
-                }
-
-                var node = new GameObject(OutfitName(i)).transform;
-                node.SetParent(_spinRoot, false);
-                OutfitMeshFitter.Build(node, meshes[i], material, height, standUp);
-                _outfits[i] = node.gameObject;
-                _outfitRenderers[i] = node.GetComponent<MeshRenderer>();
-                SetOutfitVisible(i, false);
+                return;
             }
 
+            _rigRoot.SetParent(_spinRoot, false);
+            _rigRoot.localPosition = Vector3.zero;
+            _rigRoot.localRotation = Quaternion.identity;
+            _rigRoot.localScale = Vector3.one;
+            _rigRoot.gameObject.SetActive(true);
+            BindOutfitRenderers(_rigRoot);
+            HideEndLevelSkins(_rigRoot);
+            SetupAnimator(animatorController);
             _activeOutfit = -1;
             ShowOutfit(FirstAvailableOutfit());
+            SetWalking(false);
+            AlignRigToSurface();
+        }
+
+        internal void AlignToSurface()
+        {
+            AlignRigToSurface();
+        }
+
+        internal void SetWalking(bool walking)
+        {
+            if (_animator == null)
+            {
+                return;
+            }
+
+            _animator.SetBool(IsWalkingId, walking);
         }
 
         internal void SetOutfit(int index, bool spin)
@@ -92,6 +111,7 @@ namespace RunRich3D.Views
             }
 
             ShowOutfit(resolved);
+            AlignRigToSurface();
             if (spin)
             {
                 StartSpin();
@@ -112,13 +132,34 @@ namespace RunRich3D.Views
 
         internal void SetPose(float lateralOffset, float forwardPosition)
         {
-            SetPose(new Vector3(lateralOffset, 0f, forwardPosition), 0f);
+            SetPose(lateralOffset, forwardPosition, 0f);
+        }
+
+        internal void SetPose(float lateralOffset, float forwardPosition, float steerYaw)
+        {
+            SetPose(new Vector3(lateralOffset, 0f, forwardPosition), 0f, steerYaw);
         }
 
         internal void SetPose(Vector3 worldPosition, float yawDegrees)
         {
+            SetPose(worldPosition, yawDegrees, 0f);
+        }
+
+        internal void SetPose(Vector3 worldPosition, float yawDegrees, float steerYaw)
+        {
             MovementRoot.position = worldPosition;
             MovementRoot.rotation = Quaternion.Euler(0f, yawDegrees, 0f);
+            ApplySteerTilt(steerYaw);
+        }
+
+        private void ApplySteerTilt(float steerYaw)
+        {
+            if (_visualRoot == null)
+            {
+                return;
+            }
+
+            _visualRoot.localRotation = Quaternion.Euler(0f, steerYaw, -steerYaw * 0.38f);
         }
 
         private void LateUpdate()
@@ -151,6 +192,127 @@ namespace RunRich3D.Views
         private void OnDestroy()
         {
             CancelSpin();
+        }
+
+        private void BindOutfitRenderers(Transform rig)
+        {
+            string[] names = PlayerOutfits.MeshNames;
+            _outfits = new GameObject[names.Length];
+            _outfitRenderers = new Renderer[names.Length];
+            Renderer[] renderers = rig.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < names.Length; i++)
+            {
+                Renderer found = FindRendererByName(renderers, names[i]);
+                if (found == null)
+                {
+                    continue;
+                }
+
+                _outfitRenderers[i] = found;
+                _outfits[i] = found.gameObject;
+            }
+        }
+
+        private static void HideEndLevelSkins(Transform rig)
+        {
+            Renderer[] renderers = rig.GetComponentsInChildren<Renderer>(true);
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                string name = renderers[i].gameObject.name;
+                if (name.IndexOf("EndLevel", System.StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    renderers[i].enabled = false;
+                    renderers[i].gameObject.SetActive(false);
+                }
+            }
+        }
+
+        private static Renderer FindRendererByName(Renderer[] renderers, string name)
+        {
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                if (string.Equals(renderers[i].gameObject.name, name, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return renderers[i];
+                }
+            }
+
+            return null;
+        }
+
+        private Transform FindPlayerRig()
+        {
+            Transform named = FindNamed(_visualRoot, "player");
+            if (named != null)
+            {
+                return named;
+            }
+
+            SkinnedMeshRenderer skin = _visualRoot.GetComponentInChildren<SkinnedMeshRenderer>(true);
+            return skin != null ? FindRigRoot(skin.transform) : null;
+        }
+
+        private static Transform FindRigRoot(Transform from)
+        {
+            Transform current = from;
+            while (current.parent != null && current.parent.name != "Visual" && current.parent.name != "SpinRoot")
+            {
+                current = current.parent;
+            }
+
+            return current;
+        }
+
+        private void SetupAnimator(RuntimeAnimatorController controller)
+        {
+            if (_rigRoot == null || controller == null)
+            {
+                _animator = null;
+                return;
+            }
+
+            _animator = _rigRoot.GetComponent<Animator>();
+            if (_animator == null)
+            {
+                _animator = _rigRoot.gameObject.AddComponent<Animator>();
+            }
+
+            Animator[] nested = _rigRoot.GetComponentsInChildren<Animator>(true);
+            for (int i = 0; i < nested.Length; i++)
+            {
+                if (nested[i] != null && nested[i] != _animator)
+                {
+                    nested[i].enabled = false;
+                }
+            }
+
+            Avatar avatar = FindAvatarOnRig(_rigRoot);
+            if (avatar != null)
+            {
+                _animator.avatar = avatar;
+            }
+
+            _animator.runtimeAnimatorController = controller;
+            _animator.applyRootMotion = false;
+            _animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
+            _animator.enabled = true;
+            _animator.Rebind();
+            _animator.Play("Idle", 0, 0f);
+            _animator.SetBool(IsWalkingId, false);
+        }
+
+        private static Avatar FindAvatarOnRig(Transform rigRoot)
+        {
+            Animator[] animators = rigRoot.GetComponentsInChildren<Animator>(true);
+            for (int i = 0; i < animators.Length; i++)
+            {
+                if (animators[i] != null && animators[i].avatar != null)
+                {
+                    return animators[i].avatar;
+                }
+            }
+
+            return null;
         }
 
         private void StartSpin()
@@ -198,7 +360,24 @@ namespace RunRich3D.Views
                 return index;
             }
 
-            return FirstAvailableOutfit();
+            int nearest = -1;
+            int nearestDelta = int.MaxValue;
+            for (int i = 0; i < _outfits.Length; i++)
+            {
+                if (_outfits[i] == null)
+                {
+                    continue;
+                }
+
+                int delta = Mathf.Abs(i - index);
+                if (delta < nearestDelta)
+                {
+                    nearestDelta = delta;
+                    nearest = i;
+                }
+            }
+
+            return nearest >= 0 ? nearest : FirstAvailableOutfit();
         }
 
         private void ShowOutfit(int index)
@@ -230,16 +409,85 @@ namespace RunRich3D.Views
             }
         }
 
-        private void ClearLegacyVisuals()
+        private void AlignRigToSurface()
         {
-            for (int i = _visualRoot.childCount - 1; i >= 0; i--)
+            if (_rigRoot == null || _spinRoot == null)
             {
-                UnityEngine.Object.DestroyImmediate(_visualRoot.GetChild(i).gameObject);
+                return;
             }
+
+            Renderer sample = ActiveOutfitRenderer();
+            if (sample == null)
+            {
+                return;
+            }
+
+            _rigRoot.localScale = Vector3.one;
+            Vector3 local = _rigRoot.localPosition;
+            _rigRoot.localPosition = new Vector3(local.x, 0f, local.z);
+
+            if (_animator != null && _animator.enabled)
+            {
+                _animator.Update(0f);
+            }
+
+            Bounds bounds = sample.bounds;
+            float height = bounds.size.y;
+            if (height < 0.01f)
+            {
+                return;
+            }
+
+            float scale = _outfitHeight / height;
+            _rigRoot.localScale = Vector3.one * scale;
+            if (_animator != null && _animator.enabled)
+            {
+                _animator.Update(0f);
+            }
+
+            bounds = sample.bounds;
+            float surfaceY = _spinRoot.position.y;
+            float feetOffset = bounds.min.y - surfaceY;
+            _rigRoot.localPosition = new Vector3(local.x, -feetOffset, local.z);
         }
 
-        private void RebuildSpinRoot()
+        private Renderer ActiveOutfitRenderer()
         {
+            if (_outfitRenderers == null)
+            {
+                return null;
+            }
+
+            if (_activeOutfit >= 0 && _activeOutfit < _outfitRenderers.Length && _outfitRenderers[_activeOutfit] != null)
+            {
+                return _outfitRenderers[_activeOutfit];
+            }
+
+            for (int i = 0; i < _outfitRenderers.Length; i++)
+            {
+                if (_outfitRenderers[i] != null && _outfitRenderers[i].enabled)
+                {
+                    return _outfitRenderers[i];
+                }
+            }
+
+            return null;
+        }
+
+        private void EnsureSpinRoot()
+        {
+            if (_spinRoot != null)
+            {
+                return;
+            }
+
+            Transform existing = _visualRoot.Find("SpinRoot");
+            if (existing != null)
+            {
+                _spinRoot = existing;
+                return;
+            }
+
             _spinRoot = new GameObject("SpinRoot").transform;
             _spinRoot.SetParent(_visualRoot, false);
             _spinRoot.localPosition = Vector3.zero;
@@ -247,21 +495,47 @@ namespace RunRich3D.Views
             _spinRoot.localScale = Vector3.one;
         }
 
-        private static string OutfitName(int index)
+        private void ClearGeneratedVisuals()
         {
-            switch (index)
+            for (int i = _visualRoot.childCount - 1; i >= 0; i--)
             {
-                case CowboyOutfits.Poor:
-                    return "Cowboy_Poor";
-                case CowboyOutfits.Middle:
-                    return "Cowboy_Middle";
-                case CowboyOutfits.Rich:
-                    return "Cowboy_Rich";
-                case CowboyOutfits.Millionaire:
-                    return "Cowboy_Millionaire";
-                default:
-                    return "cowboy_Casual";
+                Transform child = _visualRoot.GetChild(i);
+                if (child.name == "CowboyRig" || child.name.StartsWith("Cowboy_"))
+                {
+                    if (Application.isPlaying)
+                    {
+                        Object.Destroy(child.gameObject);
+                    }
+                    else
+                    {
+                        Object.DestroyImmediate(child.gameObject);
+                    }
+                }
             }
+        }
+
+        private static Transform FindNamed(Transform root, string name)
+        {
+            if (root == null)
+            {
+                return null;
+            }
+
+            if (root.name == name)
+            {
+                return root;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindNamed(root.GetChild(i), name);
+                if (found != null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
         }
     }
 }

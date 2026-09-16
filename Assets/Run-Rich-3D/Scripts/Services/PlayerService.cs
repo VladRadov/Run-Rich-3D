@@ -13,25 +13,21 @@ namespace RunRich3D.Services
         [SerializeField] private InputService _inputService;
         [SerializeField] private Font _labelFont;
 
-        [Header("Cowboy Meshes")]
-        [SerializeField] private Mesh _casualMesh;
-        [SerializeField] private Mesh _poorMesh;
-        [SerializeField] private Mesh _middleMesh;
-        [SerializeField] private Mesh _richMesh;
-        [SerializeField] private Mesh _millionaireMesh;
-        [SerializeField] private Material _playerMaterial;
-        [SerializeField] private Texture2D _playerAtlas;
+        [Header("Player Visual")]
+        [SerializeField] private RuntimeAnimatorController _animatorController;
 
         [Header("Movement")]
         [SerializeField] private float _pathWidth = 5.2f;
         [SerializeField] private float _steerSensitivity = 2.1f;
         [SerializeField] private float _forwardSpeed = 12f;
         [SerializeField] private float _offPathSlack = 0.9f;
+        [SerializeField] private float _maxSteerYaw = 42f;
+        [SerializeField] private float _steerYawPerSpeed = 11f;
+        [SerializeField] private float _steerYawSmooth = 10f;
 
         [Header("Outfit")]
-        [SerializeField] private float _outfitHeight = 1.85f;
+        [SerializeField] private float _outfitHeight = 2.7f;
         [SerializeField] private float _spinDuration = 0.48f;
-        [SerializeField] private Vector3 _outfitStandEuler = new Vector3(90f, 0f, 0f);
         [SerializeField] private int _startWealth;
 
         [Header("Wealth HUD")]
@@ -40,13 +36,14 @@ namespace RunRich3D.Services
         [SerializeField] private int _maxDisplayWealth = 120;
 
         [Header("Outfit Thresholds (min coins)")]
-        [SerializeField] private int _casualOutfitWealth = 40;
-        [SerializeField] private int _middleOutfitWealth = 60;
-        [SerializeField] private int _richOutfitWealth = 80;
-        [SerializeField] private int _millionaireOutfitWealth = 100;
+        [SerializeField] private int _middleOutfitWealth = 40;
+        [SerializeField] private int _casualOutfitWealth = 60;
+        [SerializeField] private int _cocktailOutfitWealth = 80;
+        [SerializeField] private int _businessOutfitWealth = 100;
+        [SerializeField] private int _blingOutfitWealth = 120;
 
         [Header("Status Banner")]
-        [SerializeField] private Vector3 _bannerLocalPosition = new Vector3(0f, 2.35f, 0f);
+        [SerializeField] private Vector3 _bannerLocalPosition = new Vector3(0f, 3.4f, 0f);
         [SerializeField] private Vector3 _bannerLookOffset = new Vector3(0f, 3.45f, -8.4f);
         [SerializeField] private Vector3 _bannerTrackScale = new Vector3(1.2f, 0.1f, 0.1f);
         [SerializeField] private Vector3 _bannerFillScale = new Vector3(1.2f, 0.12f, 0.12f);
@@ -54,13 +51,10 @@ namespace RunRich3D.Services
         [SerializeField] private float _bannerLabelCharacterSize = 0.045f;
         [SerializeField] private int _bannerLabelFontSize = 64;
         [SerializeField] private float _bannerMinFill = 0.08f;
-        [SerializeField] private float _materialGlossiness = 0.18f;
-        [SerializeField] private float _materialMetallic = 0.05f;
 
         private PlayerModel _model;
         private PlayerView _view;
         private PlayerController _controller;
-        private Material _runtimeMaterial;
 
         internal PlayerModel Model => _model;
         internal PlayerView View => _view;
@@ -77,7 +71,7 @@ namespace RunRich3D.Services
 
             _view = EntityViewFactory.CreateOn<PlayerView>(_playerEntity);
             _view.Bind(_visualRoot, _spinDuration);
-            _view.BuildOutfits(CollectMeshes(), CreatePlayerMaterial(), _outfitHeight, _outfitStandEuler);
+            _view.BindPlayerSkins(_animatorController, _outfitHeight);
             _view.AttachBanner(CreateBanner());
             _view.SetStatus(WealthTier.Poor, 0f);
 
@@ -88,13 +82,17 @@ namespace RunRich3D.Services
                 _pathWidth,
                 _steerSensitivity,
                 _forwardSpeed,
-                _offPathSlack);
+                _offPathSlack,
+                _maxSteerYaw,
+                _steerYawPerSpeed,
+                _steerYawSmooth);
             _controller.Initialize();
         }
 
         internal void BindPath(PathBend path)
         {
             _controller?.BindPath(path);
+            _view?.AlignToSurface();
         }
 
         public void Dispose()
@@ -109,53 +107,11 @@ namespace RunRich3D.Services
                 _comfortableWealth,
                 _richWealth,
                 _maxDisplayWealth,
-                _casualOutfitWealth,
                 _middleOutfitWealth,
-                _richOutfitWealth,
-                _millionaireOutfitWealth);
-        }
-
-        private Mesh[] CollectMeshes()
-        {
-            return new[]
-            {
-                _casualMesh,
-                _poorMesh,
-                _middleMesh,
-                _richMesh,
-                _millionaireMesh
-            };
-        }
-
-        private Material CreatePlayerMaterial()
-        {
-            if (_runtimeMaterial != null)
-            {
-                return _runtimeMaterial;
-            }
-
-            Shader shader = Shader.Find("Standard");
-            _runtimeMaterial = shader != null ? new Material(shader) : _playerMaterial;
-            if (_runtimeMaterial == null)
-            {
-                return null;
-            }
-
-            Texture atlas = _playerAtlas;
-            if (atlas == null && _playerMaterial != null)
-            {
-                atlas = _playerMaterial.GetTexture("_MainTex");
-            }
-
-            if (atlas != null)
-            {
-                _runtimeMaterial.mainTexture = atlas;
-            }
-
-            _runtimeMaterial.color = Color.white;
-            _runtimeMaterial.SetFloat("_Glossiness", _materialGlossiness);
-            _runtimeMaterial.SetFloat("_Metallic", _materialMetallic);
-            return _runtimeMaterial;
+                _casualOutfitWealth,
+                _cocktailOutfitWealth,
+                _businessOutfitWealth,
+                _blingOutfitWealth);
         }
 
         private StatusBannerView CreateBanner()

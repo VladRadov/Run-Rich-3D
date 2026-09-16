@@ -14,13 +14,8 @@ namespace RunRich3D.Editor
         private const string ScenePath = "Assets/Run-Rich-3D/Scenes/Game.unity";
         private const string SkyboxPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/skybox.mat";
         private const string EnviroMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/enviro_mat.mat";
-        private const string PlayerMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/player_mat.mat";
-        private const string PlayerAtlasPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/atlas_0.png";
-        private const string CowboyCasualPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/cowboy_Casual.asset";
-        private const string CowboyPoorPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Cowboy_Poor.asset";
-        private const string CowboyMiddlePath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Cowboy_Middle.asset";
-        private const string CowboyRichPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Cowboy_Rich.asset";
-        private const string CowboyMillionairePath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/Cowboy_Millionaire.asset";
+        private const string PlayerSkeletonPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/player.fbx";
+        private const string PlayerAnimatorPath = "Assets/Run-Rich-3D/Animations/Player.controller";
         private const string GroundMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/ground.asset";
         private const string FontPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Fonts/Inter-SemiBold.ttf";
         private const string ButtonTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/button.png";
@@ -68,13 +63,8 @@ namespace RunRich3D.Editor
 
             var skybox = AssetDatabase.LoadAssetAtPath<Material>(SkyboxPath);
             var enviroMat = AssetDatabase.LoadAssetAtPath<Material>(EnviroMatPath);
-            var playerMat = AssetDatabase.LoadAssetAtPath<Material>(PlayerMatPath);
-            var playerAtlas = AssetDatabase.LoadAssetAtPath<Texture2D>(PlayerAtlasPath);
-            var cowboyCasual = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyCasualPath);
-            var cowboyPoor = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyPoorPath);
-            var cowboyMiddle = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyMiddlePath);
-            var cowboyRich = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyRichPath);
-            var cowboyMillionaire = AssetDatabase.LoadAssetAtPath<Mesh>(CowboyMillionairePath);
+            var skeletonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerSkeletonPath);
+            var playerAnimator = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(PlayerAnimatorPath);
             var groundMesh = AssetDatabase.LoadAssetAtPath<Mesh>(GroundMeshPath);
             var hudFont = AssetDatabase.LoadAssetAtPath<Font>(FontPath);
             var buttonTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ButtonTexPath);
@@ -158,9 +148,16 @@ namespace RunRich3D.Editor
 
             for (int i = visual.childCount - 1; i >= 0; i--)
             {
-                Object.DestroyImmediate(visual.GetChild(i).gameObject);
+                Transform child = visual.GetChild(i);
+                if (IsPlayerVisual(child))
+                {
+                    continue;
+                }
+
+                Object.DestroyImmediate(child.gameObject);
             }
 
+            EnsurePlayerVisual(visual, skeletonPrefab);
             StripPlaceholderVisual(visual.gameObject);
             visual.localPosition = Vector3.zero;
             visual.localRotation = Quaternion.identity;
@@ -187,13 +184,7 @@ namespace RunRich3D.Editor
             playerSo.FindProperty("_visualRoot").objectReferenceValue = visual;
             playerSo.FindProperty("_inputService").objectReferenceValue = inputService;
             playerSo.FindProperty("_labelFont").objectReferenceValue = hudFont;
-            playerSo.FindProperty("_casualMesh").objectReferenceValue = cowboyCasual;
-            playerSo.FindProperty("_poorMesh").objectReferenceValue = cowboyPoor;
-            playerSo.FindProperty("_middleMesh").objectReferenceValue = cowboyMiddle;
-            playerSo.FindProperty("_richMesh").objectReferenceValue = cowboyRich;
-            playerSo.FindProperty("_millionaireMesh").objectReferenceValue = cowboyMillionaire;
-            playerSo.FindProperty("_playerMaterial").objectReferenceValue = playerMat;
-            playerSo.FindProperty("_playerAtlas").objectReferenceValue = playerAtlas;
+            playerSo.FindProperty("_animatorController").objectReferenceValue = playerAnimator;
             playerSo.ApplyModifiedPropertiesWithoutUndo();
 
             var cameraSo = new SerializedObject(cameraService);
@@ -350,6 +341,50 @@ namespace RunRich3D.Editor
             {
                 Object.DestroyImmediate(component);
             }
+        }
+
+        private static bool IsPlayerVisual(Transform child)
+        {
+            if (child == null)
+            {
+                return false;
+            }
+
+            if (string.Equals(child.name, "player", System.StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return child.GetComponentInChildren<SkinnedMeshRenderer>(true) != null;
+        }
+
+        private static bool HasPlayerVisual(Transform visual)
+        {
+            if (visual == null)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < visual.childCount; i++)
+            {
+                if (IsPlayerVisual(visual.GetChild(i)))
+                {
+                    return true;
+                }
+            }
+
+            return visual.GetComponentInChildren<SkinnedMeshRenderer>(true) != null;
+        }
+
+        private static void EnsurePlayerVisual(Transform visual, GameObject skeletonPrefab)
+        {
+            if (HasPlayerVisual(visual) || skeletonPrefab == null)
+            {
+                return;
+            }
+
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(skeletonPrefab, visual);
+            instance.name = "player";
         }
 
         private static void StripPlaceholderVisual(GameObject visual)

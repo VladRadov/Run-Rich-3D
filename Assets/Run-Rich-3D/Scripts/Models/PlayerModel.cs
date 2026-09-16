@@ -17,7 +17,7 @@ namespace RunRich3D.Models
         private readonly FloatReactiveProperty _forwardPosition = new FloatReactiveProperty(0f);
         private readonly IntReactiveProperty _wealth = new IntReactiveProperty(0);
         private readonly ReactiveProperty<WealthTier> _tier = new ReactiveProperty<WealthTier>(WealthTier.Poor);
-        private readonly IntReactiveProperty _outfitIndex = new IntReactiveProperty(CowboyOutfits.Casual);
+        private readonly IntReactiveProperty _outfitIndex = new IntReactiveProperty(PlayerOutfits.Poor);
         private readonly ReactiveProperty<GamePhase> _phase = new ReactiveProperty<GamePhase>(GamePhase.WaitingToStart);
 
         internal PlayerModel(WealthRules rules)

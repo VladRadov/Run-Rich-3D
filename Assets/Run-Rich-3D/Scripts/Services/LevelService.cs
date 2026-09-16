@@ -85,7 +85,8 @@ namespace RunRich3D.Services
             }
 
             LevelWorldTuning world = _world != null ? _world : new LevelWorldTuning();
-            var path = new PathBend(ToSegments(world.Pieces), 0f);
+            float pathY = world.PathSurfaceY > 0.01f ? world.PathSurfaceY : 0.5f;
+            var path = new PathBend(ToSegments(world.Pieces), pathY);
             LevelLayout layout = CreateLayout(world, path);
             float pickupHalfWidth = world.PickupHalfWidth > 0.01f ? world.PickupHalfWidth : 0.7f;
             float pickupHalfDepth = world.PickupHalfDepth > 0.01f ? world.PickupHalfDepth : 0.65f;

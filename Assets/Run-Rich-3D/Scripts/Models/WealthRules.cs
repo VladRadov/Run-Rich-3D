@@ -6,27 +6,30 @@ namespace RunRich3D.Models
             int comfortableThreshold,
             int richThreshold,
             int maxDisplay,
-            int casualOutfitWealth,
             int middleOutfitWealth,
-            int richOutfitWealth,
-            int millionaireOutfitWealth)
+            int casualOutfitWealth,
+            int cocktailOutfitWealth,
+            int businessOutfitWealth,
+            int blingOutfitWealth)
         {
             ComfortableThreshold = comfortableThreshold;
             RichThreshold = richThreshold;
             MaxDisplay = maxDisplay < 1 ? 1 : maxDisplay;
-            CasualOutfitWealth = ClampMin(casualOutfitWealth, 0);
-            MiddleOutfitWealth = ClampMin(middleOutfitWealth, CasualOutfitWealth);
-            RichOutfitWealth = ClampMin(richOutfitWealth, MiddleOutfitWealth);
-            MillionaireOutfitWealth = ClampMin(millionaireOutfitWealth, RichOutfitWealth);
+            MiddleOutfitWealth = ClampMin(middleOutfitWealth, 0);
+            CasualOutfitWealth = ClampMin(casualOutfitWealth, MiddleOutfitWealth);
+            CocktailOutfitWealth = ClampMin(cocktailOutfitWealth, CasualOutfitWealth);
+            BusinessOutfitWealth = ClampMin(businessOutfitWealth, CocktailOutfitWealth);
+            BlingOutfitWealth = ClampMin(blingOutfitWealth, BusinessOutfitWealth);
         }
 
         internal int ComfortableThreshold { get; }
         internal int RichThreshold { get; }
         internal int MaxDisplay { get; }
-        internal int CasualOutfitWealth { get; }
         internal int MiddleOutfitWealth { get; }
-        internal int RichOutfitWealth { get; }
-        internal int MillionaireOutfitWealth { get; }
+        internal int CasualOutfitWealth { get; }
+        internal int CocktailOutfitWealth { get; }
+        internal int BusinessOutfitWealth { get; }
+        internal int BlingOutfitWealth { get; }
 
         internal WealthTier TierFrom(int wealth)
         {
@@ -45,27 +48,32 @@ namespace RunRich3D.Models
 
         internal int OutfitFrom(int wealth)
         {
-            if (wealth >= MillionaireOutfitWealth)
+            if (wealth >= BlingOutfitWealth)
             {
-                return CowboyOutfits.Millionaire;
+                return PlayerOutfits.Bling;
             }
 
-            if (wealth >= RichOutfitWealth)
+            if (wealth >= BusinessOutfitWealth)
             {
-                return CowboyOutfits.Rich;
+                return PlayerOutfits.Business;
             }
 
-            if (wealth >= MiddleOutfitWealth)
+            if (wealth >= CocktailOutfitWealth)
             {
-                return CowboyOutfits.Middle;
+                return PlayerOutfits.Cocktail;
             }
 
             if (wealth >= CasualOutfitWealth)
             {
-                return CowboyOutfits.Casual;
+                return PlayerOutfits.Casual;
             }
 
-            return CowboyOutfits.Poor;
+            if (wealth >= MiddleOutfitWealth)
+            {
+                return PlayerOutfits.Middle;
+            }
+
+            return PlayerOutfits.Poor;
         }
 
         internal float Normalized(int wealth)
