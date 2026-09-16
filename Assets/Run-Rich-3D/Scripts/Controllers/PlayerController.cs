@@ -74,7 +74,6 @@ namespace RunRich3D.Controllers
                     {
                         _targetLateral = _model.LateralOffset.Value;
                         _lateralVelocity = 0f;
-                        _view.SetOutfit(_model.OutfitIndex.Value, false);
                     }
                 })
                 .AddTo(_disposables);
@@ -82,6 +81,11 @@ namespace RunRich3D.Controllers
             _model.OutfitIndex
                 .Subscribe(index =>
                 {
+                    if (_model.Phase.Value == GamePhase.Win)
+                    {
+                        return;
+                    }
+
                     bool spin = _model.Phase.Value == GamePhase.Playing;
                     _view.SetOutfit(index, spin);
                 })

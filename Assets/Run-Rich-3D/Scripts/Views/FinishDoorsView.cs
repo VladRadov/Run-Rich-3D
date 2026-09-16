@@ -35,6 +35,25 @@ namespace RunRich3D.Views
 
         internal float StopForward { get; private set; }
 
+        internal int DoorMultiplier(float playerForward)
+        {
+            int passed = 0;
+            for (int i = 0; i < _gates.Count; i++)
+            {
+                if (playerForward + 0.05f >= _gates[i].Trigger)
+                {
+                    passed++;
+                }
+            }
+
+            if (passed < 1)
+            {
+                passed = 1;
+            }
+
+            return passed + 1;
+        }
+
         internal void UpdateOpen(float playerForward)
         {
             if (!_bound)

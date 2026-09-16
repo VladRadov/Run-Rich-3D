@@ -35,6 +35,10 @@ namespace RunRich3D.Controllers
                 .Subscribe(_ => OnHudAction())
                 .AddTo(_disposables);
 
+            _hud.WinCollected
+                .Subscribe(CollectWin)
+                .AddTo(_disposables);
+
             _player.Phase
                 .Subscribe(OnPhase)
                 .AddTo(_disposables);
@@ -47,12 +51,16 @@ namespace RunRich3D.Controllers
                 .Subscribe(level => _hud.SetLevel(FormatLevel(level)))
                 .AddTo(_disposables);
 
+            _loop.BankedCoins
+                .Subscribe(_hud.SetCoins)
+                .AddTo(_disposables);
+
             _player.LateralOffset
                 .Subscribe(CheckWater)
                 .AddTo(_disposables);
 
             _levelEvents.FinishReached
-                .Subscribe(_ => OnFinishReached())
+                .Subscribe(OnFinishReached)
                 .AddTo(_disposables);
         }
 
@@ -67,7 +75,6 @@ namespace RunRich3D.Controllers
             switch (phase)
             {
                 case GamePhase.Win:
-                    _hud.ShowResult("ВЫ ПОБЕДИЛИ", FormatLevel(level) + " завершён", "ДАЛЬШЕ", true);
                     break;
                 case GamePhase.Lose:
                     _hud.ShowResult("ПОРАЖЕНИЕ", "Попробуйте ещё раз", "ЗАНОВО", false);
@@ -89,12 +96,24 @@ namespace RunRich3D.Controllers
             }
         }
 
-        private void OnFinishReached()
+        private void OnFinishReached(int doorMultiplier)
         {
-            if (_player.Phase.Value == GamePhase.Playing)
+            if (_player.Phase.Value != GamePhase.Playing)
             {
-                _player.SetPhase(GamePhase.Win);
+                return;
             }
+
+            int multiplier = doorMultiplier < 2 ? 2 : doorMultiplier;
+            int reward = _player.Wealth.Value * multiplier;
+            _player.SetPhase(GamePhase.Win);
+            _hud.ShowWin(_loop.LevelNumber.Value, reward);
+        }
+
+        private void CollectWin(int amount)
+        {
+            _loop.AddBankedCoins(amount);
+            _loop.AdvanceLevel();
+            _player.Reset(0);
         }
 
         private void CheckWater(float lateralOffset)
@@ -107,15 +126,7 @@ namespace RunRich3D.Controllers
 
         private void OnHudAction()
         {
-            GamePhase phase = _player.Phase.Value;
-            if (phase == GamePhase.Win)
-            {
-                _loop.AdvanceLevel();
-                _player.Reset(0);
-                return;
-            }
-
-            if (phase == GamePhase.Lose)
+            if (_player.Phase.Value == GamePhase.Lose)
             {
                 _player.Reset(0);
             }

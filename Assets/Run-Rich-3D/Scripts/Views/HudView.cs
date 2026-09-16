@@ -8,6 +8,8 @@ namespace RunRich3D.Views
     public sealed class HudView : MonoBehaviour
     {
         private readonly Subject<Unit> _actionClicked = new Subject<Unit>();
+        private WinPanelView _winPanel;
+        private RectTransform _loseRoot;
 
         private Font _font;
         private Texture2D _buttonTexture;
@@ -33,6 +35,7 @@ namespace RunRich3D.Views
         private Text _resultSubtitle;
         private Text _actionLabel;
         private RawImage _actionImage;
+        private Image _resultDimmer;
         private bool _built;
         private int _runScoreTarget;
         private float _runScoreDisplayed;
@@ -40,6 +43,7 @@ namespace RunRich3D.Views
         private float _coinsDisplayed;
 
         internal IObservable<Unit> ActionClicked => _actionClicked;
+        internal IObservable<int> WinCollected => _winPanel != null ? _winPanel.Collected : Observable.Empty<int>();
 
         internal void Bind(
             Font font,
@@ -68,11 +72,44 @@ namespace RunRich3D.Views
             EnsureBuilt();
         }
 
+        internal void BindWinPanel(
+            Texture2D bannerTexture,
+            Texture2D gaugeTexture,
+            Texture2D needleTexture,
+            Texture2D orangeTexture,
+            Texture2D blueTexture,
+            Texture2D playTexture)
+        {
+            EnsureBuilt();
+            if (_winPanel != null)
+            {
+                _winPanel.Bind(
+                    _font,
+                    bannerTexture,
+                    gaugeTexture,
+                    needleTexture,
+                    orangeTexture,
+                    blueTexture,
+                    playTexture,
+                    _billsTexture);
+            }
+        }
+
         internal void ShowRun(string levelText, int runScore)
         {
             EnsureBuilt();
             _runRoot.gameObject.SetActive(true);
             _resultRoot.gameObject.SetActive(false);
+            if (_winPanel != null)
+            {
+                _winPanel.Hide();
+            }
+
+            if (_loseRoot != null)
+            {
+                _loseRoot.gameObject.SetActive(false);
+            }
+
             _levelLabel.text = levelText;
             SnapRunScore(runScore);
         }
@@ -82,6 +119,17 @@ namespace RunRich3D.Views
             EnsureBuilt();
             _runRoot.gameObject.SetActive(false);
             _resultRoot.gameObject.SetActive(true);
+            if (_winPanel != null)
+            {
+                _winPanel.Hide();
+            }
+
+            if (_loseRoot != null)
+            {
+                _loseRoot.gameObject.SetActive(true);
+            }
+
+            SetResultDimmer(0.58f);
             _resultTitle.text = title;
             _resultTitle.color = isWin
                 ? new Color(1f, 0.86f, 0.22f)
@@ -92,6 +140,23 @@ namespace RunRich3D.Views
             _actionImage.color = isWin
                 ? new Color(0.32f, 0.86f, 0.38f)
                 : new Color(1f, 0.48f, 0.28f);
+        }
+
+        internal void ShowWin(int levelNumber, int collectedReward)
+        {
+            EnsureBuilt();
+            _runRoot.gameObject.SetActive(false);
+            _resultRoot.gameObject.SetActive(true);
+            if (_loseRoot != null)
+            {
+                _loseRoot.gameObject.SetActive(false);
+            }
+
+            SetResultDimmer(0.18f);
+            if (_winPanel != null)
+            {
+                _winPanel.Show(levelNumber, collectedReward);
+            }
         }
 
         internal void SetRunScore(int score)
@@ -242,13 +307,16 @@ namespace RunRich3D.Views
 
             _resultRoot = CreatePanel("ResultPanel", root);
             Stretch(_resultRoot);
-            var dimmer = _resultRoot.gameObject.AddComponent<Image>();
-            dimmer.color = new Color(0f, 0f, 0f, 0.58f);
-            dimmer.raycastTarget = true;
+            _resultDimmer = _resultRoot.gameObject.AddComponent<Image>();
+            _resultDimmer.color = new Color(0f, 0f, 0f, 0.58f);
+            _resultDimmer.raycastTarget = true;
+
+            _loseRoot = CreatePanel("LoseGroup", _resultRoot);
+            Stretch(_loseRoot);
 
             _resultTitle = CreateText(
                 "ResultTitle",
-                _resultRoot,
+                _loseRoot,
                 64,
                 FontStyle.Bold,
                 TextAnchor.MiddleCenter,
@@ -259,7 +327,7 @@ namespace RunRich3D.Views
 
             _resultSubtitle = CreateText(
                 "ResultSubtitle",
-                _resultRoot,
+                _loseRoot,
                 36,
                 FontStyle.Normal,
                 TextAnchor.MiddleCenter,
@@ -269,7 +337,7 @@ namespace RunRich3D.Views
                 new Vector2(860f, 90f));
             _resultSubtitle.color = new Color(1f, 1f, 1f, 0.9f);
 
-            var action = CreateChild("ActionButton", _resultRoot);
+            var action = CreateChild("ActionButton", _loseRoot);
             action.anchorMin = new Vector2(0.5f, 0.5f);
             action.anchorMax = new Vector2(0.5f, 0.5f);
             action.pivot = new Vector2(0.5f, 0.5f);
@@ -295,8 +363,20 @@ namespace RunRich3D.Views
                 Vector2.zero,
                 new Vector2(480f, 120f));
 
+            var winRoot = CreateChild("WinPanel", _resultRoot);
+            Stretch(winRoot);
+            _winPanel = winRoot.gameObject.AddComponent<WinPanelView>();
+            _loseRoot.gameObject.SetActive(false);
             _resultRoot.gameObject.SetActive(false);
             _built = true;
+        }
+
+        private void SetResultDimmer(float alpha)
+        {
+            if (_resultDimmer != null)
+            {
+                _resultDimmer.color = new Color(0f, 0f, 0f, alpha);
+            }
         }
 
         private void BuildWorldProgress(RectTransform parent)

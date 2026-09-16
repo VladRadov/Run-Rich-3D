@@ -162,8 +162,7 @@ namespace RunRich3D.Controllers
             }
 
             finish.Consume();
-            int multiplier = finish.MultiplierFor(x);
-            _player.ApplyMultiplier(multiplier);
+            int multiplier = _finishDoors != null ? _finishDoors.DoorMultiplier(z) : 2;
             _finishReached.OnNext(multiplier);
         }
 

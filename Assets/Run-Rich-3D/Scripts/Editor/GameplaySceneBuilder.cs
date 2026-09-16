@@ -31,6 +31,12 @@ namespace RunRich3D.Editor
         private const string ShopSkinTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/shop_skin.png";
         private const string PickupsTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/pickups.png";
         private const string ParquetTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/parquet_violet.png";
+        private const string WinBannerTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Banderole_Level.png";
+        private const string WinGaugeTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/circle_gauge.png";
+        private const string WinNeedleTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/arrow.png";
+        private const string WinOrangeTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/9grid_orange.png";
+        private const string WinBlueTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/9grid_blue.png";
+        private const string WinPlayTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/watch 2.png";
         private const string PlusTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Plus.png";
         private const string DollarPrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bills.fbx";
         private const string BottlePrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bottle.fbx";
@@ -82,6 +88,12 @@ namespace RunRich3D.Editor
             var shopSkinTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ShopSkinTexPath);
             var pickupsTex = AssetDatabase.LoadAssetAtPath<Texture2D>(PickupsTexPath);
             var parquetTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ParquetTexPath);
+            var winBannerTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WinBannerTexPath);
+            var winGaugeTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WinGaugeTexPath);
+            var winNeedleTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WinNeedleTexPath);
+            var winOrangeTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WinOrangeTexPath);
+            var winBlueTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WinBlueTexPath);
+            var winPlayTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WinPlayTexPath);
             var plusTex = AssetDatabase.LoadAssetAtPath<Texture2D>(PlusTexPath);
             var dollarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DollarPrefabPath);
             var bottlePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BottlePrefabPath);
@@ -213,6 +225,12 @@ namespace RunRich3D.Editor
             loopSo.FindProperty("_shopSkinTexture").objectReferenceValue = shopSkinTex;
             loopSo.FindProperty("_pickupsTexture").objectReferenceValue = pickupsTex;
             loopSo.FindProperty("_parquetTexture").objectReferenceValue = parquetTex;
+            loopSo.FindProperty("_winBannerTexture").objectReferenceValue = winBannerTex;
+            loopSo.FindProperty("_winGaugeTexture").objectReferenceValue = winGaugeTex;
+            loopSo.FindProperty("_winNeedleTexture").objectReferenceValue = winNeedleTex;
+            loopSo.FindProperty("_winOrangeButtonTexture").objectReferenceValue = winOrangeTex;
+            loopSo.FindProperty("_winBlueButtonTexture").objectReferenceValue = winBlueTex;
+            loopSo.FindProperty("_winPlayTexture").objectReferenceValue = winPlayTex;
             loopSo.ApplyModifiedPropertiesWithoutUndo();
 
             var pickupEffectSo = new SerializedObject(pickupEffectService);

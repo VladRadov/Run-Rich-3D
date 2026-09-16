@@ -991,6 +991,12 @@ MonoBehaviour:
   _shopSkinTexture: {fileID: 2800000, guid: 7a0a2283f1c36e64ebb832eb8898d458, type: 3}
   _pickupsTexture: {fileID: 2800000, guid: 3c8d3a61127e69d499c643b7111972d1, type: 3}
   _parquetTexture: {fileID: 2800000, guid: 295b07acd9597d14c86209d0642200f5, type: 3}
+  _winBannerTexture: {fileID: 2800000, guid: 14e4534faca7b134f9606b5eac9d1f08, type: 3}
+  _winGaugeTexture: {fileID: 2800000, guid: bf08db3b89de7b74e8636cbea7f21636, type: 3}
+  _winNeedleTexture: {fileID: 2800000, guid: 616b37481c6deb14682078a746aa7e8b, type: 3}
+  _winOrangeButtonTexture: {fileID: 2800000, guid: 25ab6a94441b18e4ea8bcbb6afd6964f, type: 3}
+  _winBlueButtonTexture: {fileID: 2800000, guid: 67847362f227c524e9e04af1ef7aa75a, type: 3}
+  _winPlayTexture: {fileID: 2800000, guid: 6b92d031e6e73394ca936a620019c2f5, type: 3}
   _loseAbsX: 3.2
   _toastHoldSeconds: 1.1
   _toastFadeSeconds: 0.45

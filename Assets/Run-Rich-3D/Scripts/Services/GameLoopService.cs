@@ -25,6 +25,12 @@ namespace RunRich3D.Services
         [SerializeField] private Texture2D _shopSkinTexture;
         [SerializeField] private Texture2D _pickupsTexture;
         [SerializeField] private Texture2D _parquetTexture;
+        [SerializeField] private Texture2D _winBannerTexture;
+        [SerializeField] private Texture2D _winGaugeTexture;
+        [SerializeField] private Texture2D _winNeedleTexture;
+        [SerializeField] private Texture2D _winOrangeButtonTexture;
+        [SerializeField] private Texture2D _winBlueButtonTexture;
+        [SerializeField] private Texture2D _winPlayTexture;
 
         [Header("Lose")]
         [SerializeField] private float _loseAbsX = 3.2f;
@@ -59,6 +65,13 @@ namespace RunRich3D.Services
                 _shopSkinTexture,
                 _pickupsTexture,
                 _parquetTexture);
+            _view.BindWinPanel(
+                _winBannerTexture,
+                _winGaugeTexture,
+                _winNeedleTexture,
+                _winOrangeButtonTexture,
+                _winBlueButtonTexture,
+                _winPlayTexture);
 
             _controller = new GameLoopController(
                 _model,
