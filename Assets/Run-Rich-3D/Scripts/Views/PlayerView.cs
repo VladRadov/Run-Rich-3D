@@ -13,10 +13,11 @@ namespace RunRich3D.Views
         private float _spinDuration = 0.48f;
 
         private Transform _cachedTransform;
-        private Transform _spinRoot;
         private Transform _rigRoot;
         private Animator _animator;
         private float _outfitHeight = 1.85f;
+        private float _steerYaw;
+        private float _spinYaw;
         private GameObject[] _outfits;
         private Renderer[] _outfitRenderers;
         private StatusBannerView _banner;
@@ -66,17 +67,13 @@ namespace RunRich3D.Views
 
             _outfitHeight = outfitHeight > 0.1f ? outfitHeight : 1.85f;
             ClearGeneratedVisuals();
-            EnsureSpinRoot();
+            RestoreSceneRigParent();
             _rigRoot = FindPlayerRig();
             if (_rigRoot == null)
             {
                 return;
             }
 
-            _rigRoot.SetParent(_spinRoot, false);
-            _rigRoot.localPosition = Vector3.zero;
-            _rigRoot.localRotation = Quaternion.identity;
-            _rigRoot.localScale = Vector3.one;
             _rigRoot.gameObject.SetActive(true);
             BindOutfitRenderers(_rigRoot);
             HideEndLevelSkins(_rigRoot);
@@ -152,7 +149,46 @@ namespace RunRich3D.Views
             ApplySteerTilt(steerYaw);
         }
 
+        internal Transform EffectAnchor
+        {
+            get
+            {
+                if (_visualRoot != null)
+                {
+                    return _visualRoot;
+                }
+
+                return MovementRoot;
+            }
+        }
+
+        internal Vector3 EffectWorldCenter
+        {
+            get
+            {
+                Transform anchor = EffectAnchor;
+                return anchor != null
+                    ? anchor.TransformPoint(EffectLocalCenter)
+                    : EffectLocalCenter;
+            }
+        }
+
+        internal Vector3 EffectLocalCenter
+        {
+            get
+            {
+                float height = _outfitHeight > 0.1f ? _outfitHeight : 2.7f;
+                return new Vector3(0f, height * 0.5f, 0f);
+            }
+        }
+
         private void ApplySteerTilt(float steerYaw)
+        {
+            _steerYaw = steerYaw;
+            ApplyVisualYaw();
+        }
+
+        private void ApplyVisualYaw()
         {
             if (_visualRoot == null)
             {
@@ -160,7 +196,7 @@ namespace RunRich3D.Views
             }
 
             Vector3 euler = _visualRoot.localEulerAngles;
-            _visualRoot.localRotation = Quaternion.Euler(euler.x, steerYaw, euler.z);
+            _visualRoot.localRotation = Quaternion.Euler(euler.x, _steerYaw + _spinYaw, euler.z);
         }
 
         private void LateUpdate()
@@ -170,23 +206,18 @@ namespace RunRich3D.Views
                 return;
             }
 
-            Transform spin = _spinRoot != null ? _spinRoot : _visualRoot;
-            if (spin == null)
-            {
-                _spinning = false;
-                return;
-            }
-
             _spinElapsed += Time.deltaTime;
             float duration = _spinDuration > 0.01f ? _spinDuration : 0.48f;
             float u = Mathf.Clamp01(_spinElapsed / duration);
             float eased = 1f - (1f - u) * (1f - u);
-            spin.localRotation = Quaternion.Euler(0f, 360f * eased, 0f);
+            _spinYaw = 360f * eased;
+            ApplyVisualYaw();
 
             if (u >= 1f)
             {
-                spin.localRotation = Quaternion.identity;
+                _spinYaw = 0f;
                 _spinning = false;
+                ApplyVisualYaw();
             }
         }
 
@@ -256,7 +287,7 @@ namespace RunRich3D.Views
         private static Transform FindRigRoot(Transform from)
         {
             Transform current = from;
-            while (current.parent != null && current.parent.name != "Visual" && current.parent.name != "SpinRoot")
+            while (current.parent != null && current.parent.name != "Visual")
             {
                 current = current.parent;
             }
@@ -325,10 +356,8 @@ namespace RunRich3D.Views
         private void CancelSpin()
         {
             _spinning = false;
-            if (_spinRoot != null)
-            {
-                _spinRoot.localRotation = Quaternion.identity;
-            }
+            _spinYaw = 0f;
+            ApplyVisualYaw();
         }
 
         private int FirstAvailableOutfit()
@@ -412,7 +441,7 @@ namespace RunRich3D.Views
 
         private void AlignRigToSurface()
         {
-            if (_rigRoot == null || _spinRoot == null)
+            if (_rigRoot == null || _visualRoot == null)
             {
                 return;
             }
@@ -447,7 +476,7 @@ namespace RunRich3D.Views
             }
 
             bounds = sample.bounds;
-            float surfaceY = _spinRoot.position.y;
+            float surfaceY = _visualRoot.position.y;
             float feetOffset = bounds.min.y - surfaceY;
             _rigRoot.localPosition = new Vector3(local.x, -feetOffset, local.z);
         }
@@ -475,25 +504,32 @@ namespace RunRich3D.Views
             return null;
         }
 
-        private void EnsureSpinRoot()
+        private void RestoreSceneRigParent()
         {
-            if (_spinRoot != null)
+            if (_visualRoot == null)
             {
                 return;
             }
 
-            Transform existing = _visualRoot.Find("SpinRoot");
-            if (existing != null)
+            Transform leftover = _visualRoot.Find("SpinRoot");
+            if (leftover == null)
             {
-                _spinRoot = existing;
                 return;
             }
 
-            _spinRoot = new GameObject("SpinRoot").transform;
-            _spinRoot.SetParent(_visualRoot, false);
-            _spinRoot.localPosition = Vector3.zero;
-            _spinRoot.localRotation = Quaternion.identity;
-            _spinRoot.localScale = Vector3.one;
+            Transform player = FindNamed(leftover, "player");
+            if (player != null)
+            {
+                player.SetParent(_visualRoot, true);
+            }
+
+            for (int i = leftover.childCount - 1; i >= 0; i--)
+            {
+                leftover.GetChild(i).SetParent(_visualRoot, true);
+            }
+
+            leftover.gameObject.SetActive(false);
+            Object.Destroy(leftover.gameObject);
         }
 
         private void ClearGeneratedVisuals()

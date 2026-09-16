@@ -11,6 +11,7 @@ namespace RunRich3D.Controllers
         [SerializeField] private PlayerService _playerService;
         [SerializeField] private CameraService _cameraService;
         [SerializeField] private LevelService _levelService;
+        [SerializeField] private PickupEffectService _pickupEffectService;
         [SerializeField] private GameLoopService _gameLoopService;
 
         private void Awake()
@@ -20,12 +21,14 @@ namespace RunRich3D.Controllers
             _playerService.Initialize();
             _cameraService.Initialize();
             _levelService.Initialize();
+            _pickupEffectService.Initialize();
             _gameLoopService.Initialize();
         }
 
         private void OnDestroy()
         {
             _gameLoopService?.Dispose();
+            _pickupEffectService?.Dispose();
             _levelService?.Dispose();
             _cameraService?.Dispose();
             _playerService?.Dispose();

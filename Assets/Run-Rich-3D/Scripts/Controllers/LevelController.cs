@@ -16,6 +16,8 @@ namespace RunRich3D.Controllers
         private readonly GateView _gateView;
         private readonly Subject<int> _finishReached = new Subject<int>();
         private readonly Subject<int> _moneyCollected = new Subject<int>();
+        private readonly Subject<int> _wealthGained = new Subject<int>();
+        private readonly Subject<int> _wealthLost = new Subject<int>();
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
 
         internal LevelController(
@@ -38,6 +40,8 @@ namespace RunRich3D.Controllers
 
         public IObservable<int> FinishReached => _finishReached;
         public IObservable<int> PickupCollected => _moneyCollected;
+        public IObservable<int> WealthGained => _wealthGained;
+        public IObservable<int> WealthLost => _wealthLost;
 
         internal void Initialize()
         {
@@ -58,6 +62,10 @@ namespace RunRich3D.Controllers
             _finishReached.Dispose();
             _moneyCollected.OnCompleted();
             _moneyCollected.Dispose();
+            _wealthGained.OnCompleted();
+            _wealthGained.Dispose();
+            _wealthLost.OnCompleted();
+            _wealthLost.Dispose();
         }
 
         private void Evaluate(float x, float z)
@@ -91,6 +99,8 @@ namespace RunRich3D.Controllers
                 {
                     _moneyCollected.OnNext(pickup.WealthDelta);
                 }
+
+                NotifyWealthDelta(pickup.WealthDelta);
 
                 if (i < _pickupViews.Length)
                 {
@@ -126,6 +136,7 @@ namespace RunRich3D.Controllers
             gate.Consume();
             int wealthDelta = gate.WealthDeltaFor(x);
             _player.AddWealth(wealthDelta);
+            NotifyWealthDelta(wealthDelta);
             if (_gateView != null)
             {
                 _gateView.HidePassedSide(x <= 0f);
@@ -173,6 +184,18 @@ namespace RunRich3D.Controllers
             }
 
             return 1f - (ahead - _flagRaiseEnd) / (_flagRaiseStart - _flagRaiseEnd);
+        }
+
+        private void NotifyWealthDelta(int wealthDelta)
+        {
+            if (wealthDelta > 0)
+            {
+                _wealthGained.OnNext(wealthDelta);
+            }
+            else if (wealthDelta < 0)
+            {
+                _wealthLost.OnNext(wealthDelta);
+            }
         }
 
         private void ResetRun()

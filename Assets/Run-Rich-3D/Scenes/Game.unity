@@ -369,6 +369,7 @@ MonoBehaviour:
   _playerService: {fileID: 184000133}
   _cameraService: {fileID: 184000143}
   _levelService: {fileID: 184000243}
+  _pickupEffectService: {fileID: 184000263}
   _gameLoopService: {fileID: 184000223}
 --- !u!1 &184000041
 GameObject:
@@ -437,6 +438,7 @@ Transform:
   - {fileID: 184000212}
   - {fileID: 184000222}
   - {fileID: 184000242}
+  - {fileID: 184000262}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &184000121
@@ -792,6 +794,54 @@ MonoBehaviour:
   _toastHoldSeconds: 1.1
   _toastFadeSeconds: 0.45
   _toastRisePixels: 90
+--- !u!1 &184000261
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 184000262}
+  - component: {fileID: 184000263}
+  m_Layer: 0
+  m_Name: PickupEffectService
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &184000262
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 184000261}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 184000112}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &184000263
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 184000261}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a91c2d3e4f5061728394a5b6c7d8e010, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _playerService: {fileID: 184000133}
+  _levelService: {fileID: 184000243}
+  _dollarsEffectPrefab: {fileID: 3114540728256257899, guid: b5fa83548b6dad944a0369ae29898f03, type: 3}
+  _bottleEffectPrefab: {fileID: 3114540728256257899, guid: e3d014de7bfc6ce4696144aba2714054, type: 3}
 --- !u!1 &184000231
 GameObject:
   m_ObjectHideFlags: 0

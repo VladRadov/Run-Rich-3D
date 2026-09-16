@@ -16,6 +16,8 @@ namespace RunRich3D.Editor
         private const string EnviroMatPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Material/enviro_mat.mat";
         private const string PlayerSkeletonPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/player.fbx";
         private const string PlayerAnimatorPath = "Assets/Run-Rich-3D/Animations/Player.controller";
+        private const string DollarsEffectPath = "Assets/Run-Rich-3D/Effects/Dollars.prefab";
+        private const string BottleEffectPath = "Assets/Run-Rich-3D/Effects/Bottle.prefab";
         private const string GroundMeshPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/ground.asset";
         private const string FontPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Fonts/Inter-SemiBold.ttf";
         private const string ButtonTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/button.png";
@@ -65,6 +67,8 @@ namespace RunRich3D.Editor
             var enviroMat = AssetDatabase.LoadAssetAtPath<Material>(EnviroMatPath);
             var skeletonPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerSkeletonPath);
             var playerAnimator = AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>(PlayerAnimatorPath);
+            var dollarsEffect = AssetDatabase.LoadAssetAtPath<GameObject>(DollarsEffectPath);
+            var bottleEffect = AssetDatabase.LoadAssetAtPath<GameObject>(BottleEffectPath);
             var groundMesh = AssetDatabase.LoadAssetAtPath<Mesh>(GroundMeshPath);
             var hudFont = AssetDatabase.LoadAssetAtPath<Font>(FontPath);
             var buttonTex = AssetDatabase.LoadAssetAtPath<Texture2D>(ButtonTexPath);
@@ -168,6 +172,7 @@ namespace RunRich3D.Editor
             var playerService = EnsureService<PlayerService>(servicesRoot.transform, "PlayerService");
             var cameraService = EnsureService<CameraService>(servicesRoot.transform, "CameraService");
             var levelService = EnsureService<LevelService>(servicesRoot.transform, "LevelService");
+            var pickupEffectService = EnsureService<PickupEffectService>(servicesRoot.transform, "PickupEffectService");
             var gameLoopService = EnsureService<GameLoopService>(servicesRoot.transform, "GameLoopService");
 
             var lightingSo = new SerializedObject(lightingService);
@@ -210,6 +215,13 @@ namespace RunRich3D.Editor
             loopSo.FindProperty("_parquetTexture").objectReferenceValue = parquetTex;
             loopSo.ApplyModifiedPropertiesWithoutUndo();
 
+            var pickupEffectSo = new SerializedObject(pickupEffectService);
+            pickupEffectSo.FindProperty("_playerService").objectReferenceValue = playerService;
+            pickupEffectSo.FindProperty("_levelService").objectReferenceValue = levelService;
+            pickupEffectSo.FindProperty("_dollarsEffectPrefab").objectReferenceValue = dollarsEffect;
+            pickupEffectSo.FindProperty("_bottleEffectPrefab").objectReferenceValue = bottleEffect;
+            pickupEffectSo.ApplyModifiedPropertiesWithoutUndo();
+
             var levelSo = new SerializedObject(levelService);
             levelSo.FindProperty("_levelRoot").objectReferenceValue = levelRoot.transform;
             levelSo.FindProperty("_playerService").objectReferenceValue = playerService;
@@ -229,6 +241,7 @@ namespace RunRich3D.Editor
             bootstrapSo.FindProperty("_playerService").objectReferenceValue = playerService;
             bootstrapSo.FindProperty("_cameraService").objectReferenceValue = cameraService;
             bootstrapSo.FindProperty("_levelService").objectReferenceValue = levelService;
+            bootstrapSo.FindProperty("_pickupEffectService").objectReferenceValue = pickupEffectService;
             bootstrapSo.FindProperty("_gameLoopService").objectReferenceValue = gameLoopService;
             bootstrapSo.ApplyModifiedPropertiesWithoutUndo();
 

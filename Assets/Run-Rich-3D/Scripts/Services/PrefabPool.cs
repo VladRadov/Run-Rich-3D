@@ -18,6 +18,7 @@ namespace RunRich3D.Services
         protected override T Create()
         {
             GameObject instance = UnityEngine.Object.Instantiate(_prefab, Parent);
+            instance.SetActive(false);
             T view = EntityViewFactory.CreateOn<T>(instance);
             if (_onCreated != null)
             {
