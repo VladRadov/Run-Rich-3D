@@ -37,6 +37,8 @@ namespace RunRich3D.Editor
         private const string WinOrangeTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/9grid_orange.png";
         private const string WinBlueTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/9grid_blue.png";
         private const string WinPlayTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/watch 2.png";
+        private const string LoseBannerTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Banderole_Level 1.png";
+        private const string LoseButtonTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/9grid_red.png";
         private const string PlusTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Plus.png";
         private const string DollarPrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bills.fbx";
         private const string BottlePrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bottle.fbx";
@@ -94,6 +96,8 @@ namespace RunRich3D.Editor
             var winOrangeTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WinOrangeTexPath);
             var winBlueTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WinBlueTexPath);
             var winPlayTex = AssetDatabase.LoadAssetAtPath<Texture2D>(WinPlayTexPath);
+            var loseBannerTex = AssetDatabase.LoadAssetAtPath<Texture2D>(LoseBannerTexPath);
+            var loseButtonTex = AssetDatabase.LoadAssetAtPath<Texture2D>(LoseButtonTexPath);
             var plusTex = AssetDatabase.LoadAssetAtPath<Texture2D>(PlusTexPath);
             var dollarPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(DollarPrefabPath);
             var bottlePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BottlePrefabPath);
@@ -231,6 +235,8 @@ namespace RunRich3D.Editor
             loopSo.FindProperty("_winOrangeButtonTexture").objectReferenceValue = winOrangeTex;
             loopSo.FindProperty("_winBlueButtonTexture").objectReferenceValue = winBlueTex;
             loopSo.FindProperty("_winPlayTexture").objectReferenceValue = winPlayTex;
+            loopSo.FindProperty("_loseBannerTexture").objectReferenceValue = loseBannerTex;
+            loopSo.FindProperty("_loseButtonTexture").objectReferenceValue = loseButtonTex;
             loopSo.ApplyModifiedPropertiesWithoutUndo();
 
             var pickupEffectSo = new SerializedObject(pickupEffectService);

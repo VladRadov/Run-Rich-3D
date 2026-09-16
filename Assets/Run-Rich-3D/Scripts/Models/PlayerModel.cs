@@ -43,7 +43,19 @@ namespace RunRich3D.Models
         internal void AddWealth(int delta)
         {
             int next = _wealth.Value + delta;
-            _wealth.Value = next < 0 ? 0 : next;
+            if (next < 0)
+            {
+                _wealth.Value = 0;
+                RefreshFromWealth();
+                if (_phase.Value == GamePhase.Playing)
+                {
+                    _phase.Value = GamePhase.Lose;
+                }
+
+                return;
+            }
+
+            _wealth.Value = next;
             RefreshFromWealth();
         }
 

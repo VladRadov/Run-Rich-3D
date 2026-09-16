@@ -31,6 +31,8 @@ namespace RunRich3D.Services
         [SerializeField] private Texture2D _winOrangeButtonTexture;
         [SerializeField] private Texture2D _winBlueButtonTexture;
         [SerializeField] private Texture2D _winPlayTexture;
+        [SerializeField] private Texture2D _loseBannerTexture;
+        [SerializeField] private Texture2D _loseButtonTexture;
 
         [Header("Lose")]
         [SerializeField] private float _loseAbsX = 3.2f;
@@ -72,6 +74,7 @@ namespace RunRich3D.Services
                 _winOrangeButtonTexture,
                 _winBlueButtonTexture,
                 _winPlayTexture);
+            _view.BindLosePanel(_loseBannerTexture, _loseButtonTexture);
 
             _controller = new GameLoopController(
                 _model,

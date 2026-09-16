@@ -77,7 +77,7 @@ namespace RunRich3D.Controllers
                 case GamePhase.Win:
                     break;
                 case GamePhase.Lose:
-                    _hud.ShowResult("ПОРАЖЕНИЕ", "Попробуйте ещё раз", "ЗАНОВО", false);
+                    _hud.ShowLose();
                     break;
                 case GamePhase.WaitingToStart:
                     _hud.ShowRun(FormatLevel(level), _player.Wealth.Value);
