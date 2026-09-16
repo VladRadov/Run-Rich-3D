@@ -159,7 +159,8 @@ namespace RunRich3D.Views
                 return;
             }
 
-            _visualRoot.localRotation = Quaternion.Euler(0f, steerYaw, -steerYaw * 0.38f);
+            Vector3 euler = _visualRoot.localEulerAngles;
+            _visualRoot.localRotation = Quaternion.Euler(euler.x, steerYaw, euler.z);
         }
 
         private void LateUpdate()

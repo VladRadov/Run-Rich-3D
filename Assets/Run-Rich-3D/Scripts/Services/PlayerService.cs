@@ -20,10 +20,11 @@ namespace RunRich3D.Services
         [SerializeField] private float _pathWidth = 5.2f;
         [SerializeField] private float _steerSensitivity = 2.1f;
         [SerializeField] private float _forwardSpeed = 12f;
-        [SerializeField] private float _offPathSlack = 0.9f;
+        [SerializeField] private float _offPathSlack = 0f;
         [SerializeField] private float _maxSteerYaw = 42f;
         [SerializeField] private float _steerYawPerSpeed = 11f;
         [SerializeField] private float _steerYawSmooth = 10f;
+        [SerializeField] private float _lateralSmoothTime = 0.14f;
 
         [Header("Outfit")]
         [SerializeField] private float _outfitHeight = 2.7f;
@@ -85,7 +86,8 @@ namespace RunRich3D.Services
                 _offPathSlack,
                 _maxSteerYaw,
                 _steerYawPerSpeed,
-                _steerYawSmooth);
+                _steerYawSmooth,
+                _lateralSmoothTime);
             _controller.Initialize();
         }
 

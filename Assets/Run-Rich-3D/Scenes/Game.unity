@@ -540,10 +540,11 @@ MonoBehaviour:
   _pathWidth: 5.2
   _steerSensitivity: 2.1
   _forwardSpeed: 5
-  _offPathSlack: 0.9
+  _offPathSlack: 0
   _maxSteerYaw: 42
   _steerYawPerSpeed: 11
   _steerYawSmooth: 10
+  _lateralSmoothTime: 0.14
   _outfitHeight: 2.7
   _spinDuration: 0.48
   _startWealth: 0

@@ -18,11 +18,14 @@ namespace RunRich3D.Controllers
         private readonly float _maxSteerYaw;
         private readonly float _steerYawPerSpeed;
         private readonly float _steerYawSmooth;
+        private readonly float _lateralSmoothTime;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
         private PathBend _path;
 
         private float _dragOriginScreenX;
         private float _dragOriginLateral;
+        private float _targetLateral;
+        private float _lateralVelocity;
         private float _lastLateral;
         private float _steerYaw;
         private bool _hasLastLateral;
@@ -37,7 +40,8 @@ namespace RunRich3D.Controllers
             float offPathSlack,
             float maxSteerYaw,
             float steerYawPerSpeed,
-            float steerYawSmooth)
+            float steerYawSmooth,
+            float lateralSmoothTime)
         {
             _model = model;
             _view = view;
@@ -49,6 +53,7 @@ namespace RunRich3D.Controllers
             _maxSteerYaw = maxSteerYaw > 1f ? maxSteerYaw : 42f;
             _steerYawPerSpeed = steerYawPerSpeed > 0.01f ? steerYawPerSpeed : 11f;
             _steerYawSmooth = steerYawSmooth > 0.01f ? steerYawSmooth : 10f;
+            _lateralSmoothTime = lateralSmoothTime > 0.01f ? lateralSmoothTime : 0.14f;
         }
 
         internal void Initialize()
@@ -66,6 +71,8 @@ namespace RunRich3D.Controllers
                     _view.SetWalking(playing);
                     if (!playing)
                     {
+                        _targetLateral = _model.LateralOffset.Value;
+                        _lateralVelocity = 0f;
                         _view.SetOutfit(_model.OutfitIndex.Value, false);
                     }
                 })
@@ -94,6 +101,7 @@ namespace RunRich3D.Controllers
                     {
                         _model.SetForwardPosition(
                             _model.ForwardPosition.Value + _forwardSpeed * Time.deltaTime);
+                        MoveLaterally();
                     }
 
                     ApplyPose(_model.LateralOffset.Value, _model.ForwardPosition.Value);
@@ -157,6 +165,7 @@ namespace RunRich3D.Controllers
         {
             _dragOriginScreenX = screenX;
             _dragOriginLateral = _model.LateralOffset.Value;
+            _targetLateral = _dragOriginLateral;
 
             if (_model.Phase.Value == GamePhase.WaitingToStart)
             {
@@ -173,8 +182,40 @@ namespace RunRich3D.Controllers
 
             float normalizedDelta = (screenX - _dragOriginScreenX) / Screen.width;
             float worldDelta = normalizedDelta * _pathWidth * _sensitivity;
-            float maxOffset = _pathWidth * 0.5f + _offPathSlack;
-            _model.SetLateralOffset(Mathf.Clamp(_dragOriginLateral + worldDelta, -maxOffset, maxOffset));
+            float maxOffset = MaxLateralOffset();
+            float desired = _dragOriginLateral + worldDelta;
+            float clamped = Mathf.Clamp(desired, -maxOffset, maxOffset);
+            _targetLateral = clamped;
+            if (Mathf.Abs(desired - clamped) > 0.0001f)
+            {
+                _dragOriginLateral = clamped;
+                _dragOriginScreenX = screenX;
+            }
+        }
+
+        private void MoveLaterally()
+        {
+            float current = _model.LateralOffset.Value;
+            float next = Mathf.SmoothDamp(
+                current,
+                _targetLateral,
+                ref _lateralVelocity,
+                _lateralSmoothTime);
+            if (Mathf.Abs(next - _targetLateral) < 0.001f)
+            {
+                next = _targetLateral;
+                _lateralVelocity = 0f;
+            }
+
+            float maxOffset = MaxLateralOffset();
+            _model.SetLateralOffset(Mathf.Clamp(next, -maxOffset, maxOffset));
+        }
+
+        private float MaxLateralOffset()
+        {
+            float slack = _offPathSlack < 0f ? 0f : _offPathSlack;
+            float half = _pathWidth * 0.5f + slack;
+            return half > 0.1f ? half : 0.1f;
         }
     }
 }
