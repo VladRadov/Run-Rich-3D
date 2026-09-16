@@ -9,5 +9,7 @@ namespace RunRich3D.Models
         IObservable<int> PickupCollected { get; }
         IObservable<int> WealthGained { get; }
         IObservable<int> WealthLost { get; }
+        IObservable<Unit> FlagRaised { get; }
+        IObservable<Unit> DoorOpened { get; }
     }
 }

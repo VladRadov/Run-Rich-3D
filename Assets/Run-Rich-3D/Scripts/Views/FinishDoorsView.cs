@@ -54,17 +54,23 @@ namespace RunRich3D.Views
             return passed + 1;
         }
 
-        internal void UpdateOpen(float playerForward)
+        internal int UpdateOpen(float playerForward)
         {
             if (!_bound)
             {
-                return;
+                return 0;
             }
 
+            int opened = 0;
             for (int i = 0; i < _gates.Count; i++)
             {
-                _gates[i].SetOpen(OpenAmount(playerForward, _gates[i].Trigger));
+                if (_gates[i].SetOpen(OpenAmount(playerForward, _gates[i].Trigger)))
+                {
+                    opened++;
+                }
             }
+
+            return opened;
         }
 
         internal void Close()
@@ -302,20 +308,23 @@ namespace RunRich3D.Views
 
             internal float Trigger { get; }
 
-            internal void SetOpen(float open)
+            internal bool SetOpen(float open)
             {
                 float t = Mathf.Clamp01(open);
                 if (Mathf.Abs(t - _open) < 0.001f)
                 {
-                    return;
+                    return false;
                 }
 
+                bool started = _open <= 0.001f && t > 0.001f;
                 _open = t;
                 float eased = t * t * (3f - 2f * t);
                 for (int i = 0; i < _leaves.Length; i++)
                 {
                     _leaves[i].Apply(eased);
                 }
+
+                return started;
             }
         }
 

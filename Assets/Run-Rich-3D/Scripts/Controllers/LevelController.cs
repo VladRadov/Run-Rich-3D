@@ -19,6 +19,8 @@ namespace RunRich3D.Controllers
         private readonly Subject<int> _moneyCollected = new Subject<int>();
         private readonly Subject<int> _wealthGained = new Subject<int>();
         private readonly Subject<int> _wealthLost = new Subject<int>();
+        private readonly Subject<Unit> _flagRaised = new Subject<Unit>();
+        private readonly Subject<Unit> _doorOpened = new Subject<Unit>();
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
 
         internal LevelController(
@@ -45,6 +47,8 @@ namespace RunRich3D.Controllers
         public IObservable<int> PickupCollected => _moneyCollected;
         public IObservable<int> WealthGained => _wealthGained;
         public IObservable<int> WealthLost => _wealthLost;
+        public IObservable<Unit> FlagRaised => _flagRaised;
+        public IObservable<Unit> DoorOpened => _doorOpened;
 
         internal void Initialize()
         {
@@ -69,13 +73,18 @@ namespace RunRich3D.Controllers
             _wealthGained.Dispose();
             _wealthLost.OnCompleted();
             _wealthLost.Dispose();
+            _flagRaised.OnCompleted();
+            _flagRaised.Dispose();
+            _doorOpened.OnCompleted();
+            _doorOpened.Dispose();
         }
 
         private void Evaluate(float x, float z)
         {
-            UpdateFlags(z);
-            UpdateFinishDoors(z);
-            if (_player.Phase.Value != GamePhase.Playing)
+            bool playing = _player.Phase.Value == GamePhase.Playing;
+            UpdateFlags(z, playing);
+            UpdateFinishDoors(z, playing);
+            if (!playing)
             {
                 return;
             }
@@ -166,7 +175,7 @@ namespace RunRich3D.Controllers
             _finishReached.OnNext(multiplier);
         }
 
-        private void UpdateFlags(float forward)
+        private void UpdateFlags(float forward, bool playing)
         {
             if (_flagViews == null)
             {
@@ -175,18 +184,33 @@ namespace RunRich3D.Controllers
 
             for (int i = 0; i < _flagViews.Length; i++)
             {
-                _flagViews[i].SetRaised(RaiseAmount(forward, _flagViews[i].TriggerZ));
+                float amount = RaiseAmount(forward, _flagViews[i].TriggerZ);
+                if (playing && _flagViews[i].Raised <= 0.01f && amount > 0.01f)
+                {
+                    _flagRaised.OnNext(Unit.Default);
+                }
+
+                _flagViews[i].SetRaised(amount);
             }
         }
 
-        private void UpdateFinishDoors(float forward)
+        private void UpdateFinishDoors(float forward, bool playing)
         {
             if (_finishDoors == null)
             {
                 return;
             }
 
-            _finishDoors.UpdateOpen(forward);
+            int opened = _finishDoors.UpdateOpen(forward);
+            if (!playing)
+            {
+                return;
+            }
+
+            for (int i = 0; i < opened; i++)
+            {
+                _doorOpened.OnNext(Unit.Default);
+            }
         }
 
         private float RaiseAmount(float playerZ, float flagZ)

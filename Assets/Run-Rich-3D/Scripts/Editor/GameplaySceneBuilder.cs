@@ -39,6 +39,7 @@ namespace RunRich3D.Editor
         private const string WinPlayTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/watch 2.png";
         private const string LoseBannerTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Banderole_Level 1.png";
         private const string LoseButtonTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/9grid_red.png";
+        private const string AudioClipRoot = "Assets/Run-Rich-3D/OtherAssets/Sounds/AudioClip/";
         private const string PlusTexPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Texture2D/Plus.png";
         private const string DollarPrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bills.fbx";
         private const string BottlePrefabPath = "Assets/Run-Rich-3D/OtherAssets/Visual/Mesh/LowPoly/bottle.fbx";
@@ -189,6 +190,7 @@ namespace RunRich3D.Editor
             var cameraService = EnsureService<CameraService>(servicesRoot.transform, "CameraService");
             var levelService = EnsureService<LevelService>(servicesRoot.transform, "LevelService");
             var pickupEffectService = EnsureService<PickupEffectService>(servicesRoot.transform, "PickupEffectService");
+            var audioService = EnsureService<AudioService>(servicesRoot.transform, "AudioService");
             var gameLoopService = EnsureService<GameLoopService>(servicesRoot.transform, "GameLoopService");
 
             var lightingSo = new SerializedObject(lightingService);
@@ -246,6 +248,25 @@ namespace RunRich3D.Editor
             pickupEffectSo.FindProperty("_bottleEffectPrefab").objectReferenceValue = bottleEffect;
             pickupEffectSo.ApplyModifiedPropertiesWithoutUndo();
 
+            var audioSo = new SerializedObject(audioService);
+            audioSo.FindProperty("_playerService").objectReferenceValue = playerService;
+            audioSo.FindProperty("_levelService").objectReferenceValue = levelService;
+            AssignAudioClips(audioSo.FindProperty("_footsteps"),
+                LoadAudioClip("SFX_Footstep_1.ogg"),
+                LoadAudioClip("SFX_Footstep_2.ogg"),
+                LoadAudioClip("SFX_Footstep_3.ogg"),
+                LoadAudioClip("SFX_Footstep_4.ogg"),
+                LoadAudioClip("SFX_Footstep_5.ogg"));
+            audioSo.FindProperty("_dollar").objectReferenceValue = LoadAudioClip("collect_coin.ogg");
+            audioSo.FindProperty("_bottle").objectReferenceValue = LoadAudioClip("RemoveMoney.ogg");
+            audioSo.FindProperty("_flag").objectReferenceValue = LoadAudioClip("photograph.ogg");
+            audioSo.FindProperty("_status").objectReferenceValue = LoadAudioClip("shortcutrun_sfx_joueur_boost_pont_V3.ogg");
+            audioSo.FindProperty("_door").objectReferenceValue = LoadAudioClip("shortcutrun_sfx_envir_boost_champignon_01.ogg");
+            audioSo.FindProperty("_win").objectReferenceValue = LoadAudioClip("shortcutrun_sfx_jingle_victory.ogg");
+            audioSo.FindProperty("_lose").objectReferenceValue = LoadAudioClip("App Error.ogg");
+            audioSo.FindProperty("_stepInterval").floatValue = 0.52f;
+            audioSo.ApplyModifiedPropertiesWithoutUndo();
+
             var levelSo = new SerializedObject(levelService);
             levelSo.FindProperty("_levelRoot").objectReferenceValue = levelRoot.transform;
             levelSo.FindProperty("_playerService").objectReferenceValue = playerService;
@@ -266,6 +287,7 @@ namespace RunRich3D.Editor
             bootstrapSo.FindProperty("_cameraService").objectReferenceValue = cameraService;
             bootstrapSo.FindProperty("_levelService").objectReferenceValue = levelService;
             bootstrapSo.FindProperty("_pickupEffectService").objectReferenceValue = pickupEffectService;
+            bootstrapSo.FindProperty("_audioService").objectReferenceValue = audioService;
             bootstrapSo.FindProperty("_gameLoopService").objectReferenceValue = gameLoopService;
             bootstrapSo.ApplyModifiedPropertiesWithoutUndo();
 
@@ -314,6 +336,25 @@ namespace RunRich3D.Editor
             }
 
             return service;
+        }
+
+        private static AudioClip LoadAudioClip(string fileName)
+        {
+            return AssetDatabase.LoadAssetAtPath<AudioClip>(AudioClipRoot + fileName);
+        }
+
+        private static void AssignAudioClips(SerializedProperty property, params AudioClip[] clips)
+        {
+            if (property == null)
+            {
+                return;
+            }
+
+            property.arraySize = clips.Length;
+            for (int i = 0; i < clips.Length; i++)
+            {
+                property.GetArrayElementAtIndex(i).objectReferenceValue = clips[i];
+            }
         }
 
         private static Camera EnsureCamera(Transform gameRoot)

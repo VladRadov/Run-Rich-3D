@@ -15,6 +15,7 @@ namespace RunRich3D.Views
         private bool _motionBound;
 
         internal float TriggerZ => _triggerZ;
+        internal float Raised => _raised < 0f ? 0f : _raised;
 
         private void Awake()
         {
