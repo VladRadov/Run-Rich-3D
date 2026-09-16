@@ -31,18 +31,35 @@ namespace RunRich3D.Views
         {
             if (_skybox != null)
             {
+                EnsurePanoramic(_skybox);
                 RenderSettings.skybox = _skybox;
+                DynamicGI.UpdateEnvironment();
             }
 
             RenderSettings.ambientMode = AmbientMode.Trilight;
             RenderSettings.ambientSkyColor = _ambientSky;
             RenderSettings.ambientEquatorColor = _ambientEquator;
             RenderSettings.ambientGroundColor = _ambientGround;
+            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
             RenderSettings.sun = _cachedSun;
 
             if (_cachedSun != null)
             {
                 _cachedSun.shadows = LightShadows.Soft;
+            }
+        }
+
+        private static void EnsurePanoramic(Material skybox)
+        {
+            if (skybox.shader != null && skybox.shader.name == "Skybox/Panoramic")
+            {
+                return;
+            }
+
+            Shader panoramic = Shader.Find("Skybox/Panoramic");
+            if (panoramic != null)
+            {
+                skybox.shader = panoramic;
             }
         }
     }

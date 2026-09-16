@@ -131,6 +131,8 @@ namespace RunRich3D.Editor
             RenderSettings.ambientSkyColor = new Color(0.62f, 0.86f, 1f);
             RenderSettings.ambientEquatorColor = new Color(0.48f, 0.78f, 0.95f);
             RenderSettings.ambientGroundColor = new Color(0.78f, 0.78f, 0.72f);
+            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
+            DynamicGI.UpdateEnvironment();
 
             var bootstrapRoot = GetOrCreateRoot("1. Bootstrap");
             var servicesRoot = GetOrCreateRoot("2. Services");

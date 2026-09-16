@@ -18,7 +18,8 @@ namespace RunRich3D.Services
 
         public void Initialize()
         {
-            _view = EntityViewFactory.CreateOn<SceneLightingView>(_sun.gameObject);
+            GameObject host = _sun != null ? _sun.gameObject : gameObject;
+            _view = EntityViewFactory.CreateOn<SceneLightingView>(host);
             _view.Setup(_sun, _skybox, _ambientSky, _ambientEquator, _ambientGround);
         }
 

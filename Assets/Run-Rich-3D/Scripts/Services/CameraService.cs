@@ -24,6 +24,7 @@ namespace RunRich3D.Services
         {
             _view = EntityViewFactory.CreateOn<FollowCameraView>(_camera.gameObject);
             _view.BindSettings(_offset, _pitch, _horizontalSmoothTime);
+            _camera.clearFlags = CameraClearFlags.Skybox;
             _controller = new CameraController(_view, _playerService.View);
             _controller.Initialize();
             if (_camera != null && _playerService.View != null)
