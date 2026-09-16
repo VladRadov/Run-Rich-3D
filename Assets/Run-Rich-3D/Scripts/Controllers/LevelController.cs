@@ -14,6 +14,7 @@ namespace RunRich3D.Controllers
         private readonly LevelPieceView[] _pickupViews;
         private readonly FlagView[] _flagViews;
         private readonly GateView _gateView;
+        private readonly FinishDoorsView _finishDoors;
         private readonly Subject<int> _finishReached = new Subject<int>();
         private readonly Subject<int> _moneyCollected = new Subject<int>();
         private readonly Subject<int> _wealthGained = new Subject<int>();
@@ -26,6 +27,7 @@ namespace RunRich3D.Controllers
             LevelPieceView[] pickupViews,
             FlagView[] flagViews,
             GateView gateView,
+            FinishDoorsView finishDoors,
             float flagRaiseStart,
             float flagRaiseEnd)
         {
@@ -34,6 +36,7 @@ namespace RunRich3D.Controllers
             _pickupViews = pickupViews;
             _flagViews = flagViews;
             _gateView = gateView;
+            _finishDoors = finishDoors;
             _flagRaiseStart = flagRaiseStart;
             _flagRaiseEnd = flagRaiseEnd;
         }
@@ -71,6 +74,7 @@ namespace RunRich3D.Controllers
         private void Evaluate(float x, float z)
         {
             UpdateFlags(z);
+            UpdateFinishDoors(z);
             if (_player.Phase.Value != GamePhase.Playing)
             {
                 return;
@@ -146,7 +150,13 @@ namespace RunRich3D.Controllers
         private void TryFinish(float x, float z)
         {
             FinishRecord finish = _model.Finish;
-            if (!finish.Reached(z))
+            float line = finish.Spawn.Z;
+            if (_finishDoors != null && _finishDoors.StopForward > line)
+            {
+                line = _finishDoors.StopForward;
+            }
+
+            if (finish.IsConsumed || z < line)
             {
                 return;
             }
@@ -168,6 +178,16 @@ namespace RunRich3D.Controllers
             {
                 _flagViews[i].SetRaised(RaiseAmount(forward, _flagViews[i].TriggerZ));
             }
+        }
+
+        private void UpdateFinishDoors(float forward)
+        {
+            if (_finishDoors == null)
+            {
+                return;
+            }
+
+            _finishDoors.UpdateOpen(forward);
         }
 
         private float RaiseAmount(float playerZ, float flagZ)
@@ -211,14 +231,17 @@ namespace RunRich3D.Controllers
                 _pickupViews[i].SetVisible(true);
             }
 
-            if (_flagViews == null)
+            if (_flagViews != null)
             {
-                return;
+                for (int i = 0; i < _flagViews.Length; i++)
+                {
+                    _flagViews[i].SetRaised(0f);
+                }
             }
 
-            for (int i = 0; i < _flagViews.Length; i++)
+            if (_finishDoors != null)
             {
-                _flagViews[i].SetRaised(0f);
+                _finishDoors.Close();
             }
         }
     }

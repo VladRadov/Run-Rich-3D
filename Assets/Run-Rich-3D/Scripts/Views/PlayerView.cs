@@ -6,6 +6,7 @@ namespace RunRich3D.Views
     public sealed class PlayerView : MonoBehaviour
     {
         private static readonly int IsWalkingId = Animator.StringToHash("IsWalking");
+        private static readonly int IsDancingId = Animator.StringToHash("IsDancing");
 
         [Header("Visual")]
         [SerializeField] private Transform _visualRoot;
@@ -81,6 +82,7 @@ namespace RunRich3D.Views
             _activeOutfit = -1;
             ShowOutfit(FirstAvailableOutfit());
             SetWalking(false);
+            SetDancing(false);
             AlignRigToSurface();
         }
 
@@ -97,6 +99,16 @@ namespace RunRich3D.Views
             }
 
             _animator.SetBool(IsWalkingId, walking);
+        }
+
+        internal void SetDancing(bool dancing)
+        {
+            if (_animator == null)
+            {
+                return;
+            }
+
+            _animator.SetBool(IsDancingId, dancing);
         }
 
         internal void SetOutfit(int index, bool spin)
@@ -331,6 +343,7 @@ namespace RunRich3D.Views
             _animator.Rebind();
             _animator.Play("Idle", 0, 0f);
             _animator.SetBool(IsWalkingId, false);
+            _animator.SetBool(IsDancingId, false);
         }
 
         private static Avatar FindAvatarOnRig(Transform rigRoot)

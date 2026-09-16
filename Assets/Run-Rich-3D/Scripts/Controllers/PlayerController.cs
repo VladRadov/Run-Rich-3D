@@ -69,6 +69,7 @@ namespace RunRich3D.Controllers
                 {
                     bool playing = phase == GamePhase.Playing;
                     _view.SetWalking(playing);
+                    _view.SetDancing(phase == GamePhase.Win);
                     if (!playing)
                     {
                         _targetLateral = _model.LateralOffset.Value;

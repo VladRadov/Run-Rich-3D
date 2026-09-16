@@ -12,6 +12,7 @@ namespace RunRich3D.Services
         [SerializeField] private Transform _pickupRoot;
         [SerializeField] private FlagView[] _flagViews;
         [SerializeField] private GateView _gateView;
+        [SerializeField] private FinishDoorsView _finishDoorsView;
         [SerializeField] private PlayerService _playerService;
         [SerializeField] private GameObject _legacyPath;
 
@@ -102,6 +103,7 @@ namespace RunRich3D.Services
             var builder = new LevelWorldBuilder(pickupRoot, CreateCatalog(), world, path, _pickupPools, _plusSignTexture);
             LevelWorldBuilder.BuiltLevel visuals = builder.BuildRuntimePickups(layout);
             FlagView[] flags = _flagViews != null ? _flagViews : new FlagView[0];
+            FinishDoorsView finishDoors = EnsureFinishDoors(path);
 
             _controller = new LevelController(
                 _model,
@@ -109,6 +111,7 @@ namespace RunRich3D.Services
                 visuals.Pickups,
                 flags,
                 _gateView,
+                finishDoors,
                 world.FlagRaiseStart > 0.01f ? world.FlagRaiseStart : 5.5f,
                 world.FlagRaiseEnd > 0.01f ? world.FlagRaiseEnd : 0.35f);
             _controller.Initialize();
@@ -132,6 +135,37 @@ namespace RunRich3D.Services
         }
 
         internal Transform LevelRoot => _levelRoot;
+
+        private FinishDoorsView EnsureFinishDoors(PathBend path)
+        {
+            Transform finish = FindFinishRoot();
+            if (finish == null)
+            {
+                return _finishDoorsView;
+            }
+
+            FinishDoorsView view = _finishDoorsView != null
+                ? _finishDoorsView
+                : EntityViewFactory.CreateOn<FinishDoorsView>(finish.gameObject);
+            _finishDoorsView = view;
+            float finishZ = _finishZ > 0.01f ? _finishZ : 118f;
+            PathPose pose = path.Sample(finishZ, 0f);
+            Vector3 inward = Quaternion.Euler(0f, pose.YawDegrees, 0f) * Vector3.forward;
+            view.Bind(inward, new Vector3(pose.X, pose.Y, pose.Z), finishZ);
+            return view;
+        }
+
+        private Transform FindFinishRoot()
+        {
+            if (_levelRoot == null)
+            {
+                return null;
+            }
+
+            Transform staticRoot = _levelRoot.Find("Static");
+            Transform parent = staticRoot != null ? staticRoot : _levelRoot;
+            return parent.Find("Finish");
+        }
 
         private LevelLayout CreateLayout(LevelWorldTuning world, PathBend path)
         {
